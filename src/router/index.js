@@ -41,10 +41,10 @@ const router = createRouter({
       meta: {requiresAuth: false}
     },
     {
-      path: '/user/:userId/profile',
+      path: '/user/:id/profile',
       name: 'userProfile',
       component: () => import('../views/UserProfile.vue'),
-      meta: {requiresAuth: false}
+      meta: {requiresAuth: true}
     },
   ],
 })

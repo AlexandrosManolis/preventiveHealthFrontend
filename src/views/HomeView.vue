@@ -4,6 +4,7 @@ import { useApplicationStore } from '@/stores/application.js'
 
 const applicationStore = useApplicationStore();
 const backendEnvVar = import.meta.env.VITE_BACKEND;
+const userIdRef = ref(null);
 
 const pendingUserRequest = ref(false);
 const regectedUserRequest = ref(false);

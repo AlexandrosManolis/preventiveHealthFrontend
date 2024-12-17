@@ -3,7 +3,7 @@ import { RouterLink } from 'vue-router'
 import { useApplicationStore } from '@/stores/application.js'
 import { computed, ref, onBeforeUnmount, onMounted } from 'vue'
 const applicationStore = useApplicationStore()
-const { userData } = useApplicationStore()
+
 const isNavbarOpen = ref(false);
 
 const username = computed(() =>
@@ -23,7 +23,6 @@ const handleResize = () => {
   }
 }
 
-// Add event listeners for screen resizing
 onMounted(() => {
   window.addEventListener('resize', handleResize)
 })
@@ -55,7 +54,9 @@ onBeforeUnmount(() => {
           <li class="nav-item" v-if="!applicationStore.isAuthenticated">
             <RouterLink :to="{name : 'login'}" class="nav-link fw-bolder login-button">LogIn / Register</RouterLink>
           </li>
-
+          <li class="nav-item" v-if="applicationStore.isAuthenticated">
+            <RouterLink :to="{name : 'userProfile', params: {id: applicationStore.userData.id}}" class="nav-link fw-bolder login-button">Profile</RouterLink>
+          </li>
           <!-- Dropdown for Logged-in User -->
           <li class="nav-item" v-if="applicationStore.isAuthenticated">
             <div class="dropdown">
