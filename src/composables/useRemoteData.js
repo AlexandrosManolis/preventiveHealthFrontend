@@ -10,37 +10,40 @@ export function useRemoteData(urlRef, authRef, methodRef = ref("GET"), bodyRef =
   const loading = ref(false);
 
   const performRequest = () => {
-    const headers = {
-      'Content-Type': 'application/json'
-    };
+    return new Promise((resolve) => {
+      const headers = {
+        'Content-Type': 'application/json'
+      };
 
-    if (authRef.value === true) {
-      headers['Authorization'] = 'Bearer ' + store.userData.accessToken;
-    }
-    const config = {
-      method: methodRef.value,
-      headers: headers,
-    };
+      if (authRef.value === true) {
+        headers['Authorization'] = 'Bearer ' + store.userData.accessToken;
+      }
+      const config = {
+        method: methodRef.value,
+        headers: headers,
+      };
 
-    if (bodyRef.value !== null) {
-      config.body = JSON.stringify(bodyRef.value);
-    }
+      if (bodyRef.value !== null) {
+        config.body = JSON.stringify(bodyRef.value);
+      }
 
-    fetch(urlRef.value, config)
-      .then((response) => {
-        if (response.ok) {
-          response.json().then((responseData) => {
-            console.log(responseData);
-            data.value = responseData;
-          });
-        }
-      })
-      .catch((err) => {
-        error.value = err;
-      })
-      .finally(() => {
-        loading.value = false;
-      });
+      fetch(urlRef.value, config)
+        .then((response) => {
+          if (response.ok) {
+            response.json().then((responseData) => {
+              console.log(responseData);
+              data.value = responseData;
+              resolve(responseData);
+            });
+          }
+        })
+        .catch((err) => {
+          error.value = err;
+        })
+        .finally(() => {
+          loading.value = false;
+        });
+    });
   };
 
   return { data, error, loading, performRequest };
