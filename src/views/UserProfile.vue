@@ -92,7 +92,9 @@ const onSubmit = async (event) => {
   urlRef.value = `${backendEnvVar}/api/user/${userIdRef.value}/edit-profile`;
   methodRef.value = "POST";
 
-  console.log("Submitting form data:", JSON.stringify(formDataRef.value));
+  const { data, error, loading, performRequest } = useRemoteData(urlRef, authRef, methodRef,formDataRef);
+
+  console.log("Submitting form data:",formDataRef.value);
 
   // Perform request
   await performRequest();
@@ -289,12 +291,12 @@ const goback = () => router.push('/')
                 </div>
               </div></div>
 
-              <div class="button-container">
-              <button v-if="!scheduleExists('Monday')" class="btn btn-primary" @click="addSchedule('MONDAY')">Add Schedule for Monday</button>
-              <button v-if="!scheduleExists('Tuesday')" class="btn btn-primary" @click="addSchedule('TUESDAY')">Add Schedule for Tuesday</button>
-              <button v-if="!scheduleExists('Wednesday')" class="btn btn-primary" @click="addSchedule('WEDNESDAY')">Add Schedule for Wednesday</button>
-              <button v-if="!scheduleExists('Thursday')" class="btn btn-primary" @click="addSchedule('THURSDAY')">Add Schedule for Thursday</button>
-              <button v-if="!scheduleExists('Friday')" class="btn btn-primary" @click="addSchedule('FRIDAY')">Add Schedule for Friday</button>
+            <div class="button-container">
+              <template v-for="day in ['MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY']">
+                <button :key="day" class="btn btn-primary" v-if="!scheduleExists(day)" @click="addSchedule(day)">
+                  Add Schedule for {{ day }}
+                </button>
+              </template>
             </div>
 
           </div>
