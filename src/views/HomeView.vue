@@ -1,13 +1,14 @@
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { useApplicationStore } from '@/stores/application.js'
+import { useRemoteData } from '@/composables/useRemoteData.js'
 
 const applicationStore = useApplicationStore();
 const backendEnvVar = import.meta.env.VITE_BACKEND;
 const userIdRef = ref(null);
 
 const pendingUserRequest = ref(false);
-const regectedUserRequest = ref(false);
+const rejectedUserRequest = ref(false);
 const selectedValue=ref("");
 const dropdownVisible= ref(false);
 
@@ -48,21 +49,31 @@ const searchSpecialty= () => {
     alert("Please select or enter a specialty!");
   }
 }
-
 const checkRequestExistence = async (username, status) => {
+  // Define URL and other references
+  const urlRef = ref(`${backendEnvVar}/api/register-request/${status}?username=${username}`);
+  const authRef = ref(true);
+  const methodRef = ref("GET");
+
+  const { performRequest, data, error } = useRemoteData(urlRef, authRef, methodRef);
+
   try {
-    const response = await fetch(`${backendEnvVar}/api/register-request/${status}?username=${encodeURIComponent(username)}`);
-    const data = await response.json();
-    return data.exists; // Return both the status and existence
-  } catch (error) {
-    console.error(`Error checking ${status} request:`, error);
-    return { status, exists: false }; // Default to `false` if an error occurs
+    const responseData = await performRequest();
+
+    if (responseData && responseData.exists !== undefined) {
+      return { status, exists: responseData.exists };
+    } else {
+      return { status, exists: false };
+    }
+  } catch (err) {
+    console.error('Request failed:', err);
+    return { status, exists: false }; // Fallback for errors
   }
 };
 
 onMounted(async () => {
   pendingUserRequest.value = await checkRequestExistence(username.value, "pending");
-  regectedUserRequest.value = await checkRequestExistence(username.value, "rejected");
+  rejectedUserRequest.value = await checkRequestExistence(username.value, "rejected");
 });
 </script>
 
@@ -95,11 +106,11 @@ onMounted(async () => {
     </div>
   </div>
   <div class="header" v-if="(userRole.includes('ROLE_DOCTOR') || userRole.includes('ROLE_DIAGNOSTIC'))">
-    <div v-if="pendingUserRequest">
+    <div v-if="pendingUserRequest.exists">
       <h1 class="header">Your request is still in Pending status! Please come back later.</h1>
     </div>
-    <div v-if="regectedUserRequest">
-      <h1 class="header">Your request rejected! Please contact us or check your email.</h1>
+    <div v-if="rejectedUserRequest.exists">
+      <h1 class="header">Your request was rejected! Please contact us or check your email.</h1>
     </div>
   </div>
 
