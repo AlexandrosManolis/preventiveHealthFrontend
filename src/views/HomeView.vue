@@ -1,288 +1,216 @@
 <script setup>
-import { ref, computed, onMounted, watch } from 'vue'
+import {ref, computed, onMounted} from 'vue'
 import { useApplicationStore } from '@/stores/application.js'
 import { useRemoteData } from '@/composables/useRemoteData.js'
 
-const applicationStore = useApplicationStore();
-const backendEnvVar = import.meta.env.VITE_BACKEND;
-const userIdRef = ref(null);
+const applicationStore = useApplicationStore()
+const backendEnvVar = import.meta.env.VITE_BACKEND
 
-const pendingUserRequest = ref(false);
-const rejectedUserRequest = ref(false);
-const selectedValue=ref("");
-const dropdownVisible= ref(false);
-
-const options= ref(null);
+const pendingUserRequest = ref(false)
+const rejectedUserRequest = ref(false)
 
 const userRole = computed(() =>
-  applicationStore.isAuthenticated ? applicationStore.userData.roles : []
-);
+  applicationStore.isAuthenticated ? applicationStore.userData.roles : [],
+)
 const username = computed(() =>
-  applicationStore.isAuthenticated ? applicationStore.userData.username : null
-);
+  applicationStore.isAuthenticated ? applicationStore.userData.username : null,
+)
 
-const filteredOptions= computed(() =>{
-    const filter = selectedValue.value.toUpperCase();
-    return this.options.filter((option) => option.toUpperCase().includes(filter))
-});
-
-
-const toggleDropdown=() =>{
-  dropdownVisible.value = !dropdownVisible.value;
-}
-
-const filterFunction= ()=> {
-  if (!dropdownVisible.value) {
-    dropdownVisible.value = true;
-  }
-}
-
-const selectOption = (option) => {
-  selectedValue.value = option;
-  dropdownVisible.value = false;
-}
-
-const searchSpecialty= () => {
-  if (selectedValue.value) {
-    alert(`Searching for: ${selectedValue.value}`);
-  } else {
-    alert("Please select or enter a specialty!");
-  }
-}
 const checkRequestExistence = async (username, status) => {
   // Define URL and other references
-  const urlRef = ref(`${backendEnvVar}/api/register-request/${status}?username=${username}`);
-  const authRef = ref(true);
-  const methodRef = ref("GET");
+  const urlRef = ref(`${backendEnvVar}/api/register-request/${status}?username=${username}`)
+  const authRef = ref(true)
+  const methodRef = ref('GET')
 
-  const { performRequest, data, error } = useRemoteData(urlRef, authRef, methodRef);
+  const { performRequest, data, error } = useRemoteData(urlRef, authRef, methodRef)
 
   try {
-    const responseData = await performRequest();
+    const responseData = await performRequest()
 
     if (responseData && responseData.exists !== undefined) {
-      return { status, exists: responseData.exists };
+      return { status, exists: responseData.exists }
     } else {
-      return { status, exists: false };
+      return { status, exists: false }
     }
   } catch (err) {
-    console.error('Request failed:', err);
-    return { status, exists: false }; // Fallback for errors
+    console.error('Request failed:', err)
+    return { status, exists: false } // Fallback for errors
   }
-};
+}
 
 onMounted(async () => {
-  pendingUserRequest.value = await checkRequestExistence(username.value, "pending");
-  rejectedUserRequest.value = await checkRequestExistence(username.value, "rejected");
-});
+  pendingUserRequest.value = await checkRequestExistence(username.value, 'pending')
+  rejectedUserRequest.value = await checkRequestExistence(username.value, 'rejected')
+})
+
+
 </script>
 
 <template>
-  <div class="horizontal-container align-items-center" v-if="!userRole.includes('ROLE_DOCTOR' || 'ROLE_DIAGNOSTIC')">
-    <img
-      src="@/assets/preventivehealth.webp"
-      alt="Preventive Health App Design"
-      class="aligned-image" />
+  <div>
+    <!-- Main Container -->
+    <div class="main-container">
 
-    <div class="aligned-text app-footer ">
-      <!-- Search Input with Search Button -->
-      <div class="input-group">
-        <input v-model="selectedValue" @click="toggleDropdown" type="text"
-          placeholder="Search specialty" id="myInput" @keyup="filterFunction" class="search-input" />
-        <button @click="searchSpecialty" class="search-button">🔍</button>
+      <div class="image-container">
+        <img src="@/assets/preventivehealth.webp" alt="Preventive Health App Design" class="aligned-image faded-image" />
       </div>
 
-      <!-- Dropdown Menu -->
-      <div class="dropdown" v-if="dropdownVisible && filteredOptions.length">
-        <div v-for="option in filteredOptions" :key="option" class="dropdown-item" @click.prevent="selectOption(option)">
-          {{ option }}
+        <!-- Cards Container -->
+        <div class="cards-container row">
+          <RouterLink :to="{name : 'userProfile', params: {id: applicationStore.userData.id}}" class="card btn fw-bolder btn-dark"
+          v-if="applicationStore.isAuthenticated">
+              <div class="card-content">
+                <h2>Profile</h2>
+                <p>Manage your profile and personal information.</p>
+              </div>
+          </RouterLink>
+          <RouterLink :to="{name : 'findSpecialist'}" class="card btn fw-bolder btn-dark"
+          v-if="userRole.includes('ROLE_PATIENT') || !applicationStore.isAuthenticated">
+            <div class="card-content">
+              <h2>Find Specialist</h2>
+              <p>Search for healthcare specialists in your area.</p>
+            </div>
+          </RouterLink>
+          <RouterLink :to="{name : 'appointments'}" class="card btn fw-bolder btn-dark"
+          v-if="(userRole.includes('ROLE_DOCTOR') || userRole.includes('ROLE_DIAGNOSTIC')) && !pendingUserRequest.exists && !rejectedUserRequest.exists">
+            <div class="card-content">
+              <h2>Appointments</h2>
+              <p>Check your appointments.</p>
+            </div>
+          </RouterLink>
+          <RouterLink :to="{name : 'appointmentRequests'}" class="card btn fw-bolder btn-dark"
+          v-if="(userRole.includes('ROLE_DOCTOR') || userRole.includes('ROLE_DIAGNOSTIC')) && !pendingUserRequest.exists && !rejectedUserRequest.exists">
+            <div class="card-content">
+              <h2>Appointment Requests</h2>
+              <p>Check your appointment requests.</p>
+            </div>
+          </RouterLink>
+        </div>
+
+      <div class="header" v-if="userRole.includes('ROLE_DOCTOR') || userRole.includes('ROLE_DIAGNOSTIC')">
+        <div v-if="pendingUserRequest.exists">
+          <h1>Your request is still in Pending status! Please come back later.</h1>
+        </div>
+        <div v-if="rejectedUserRequest.exists">
+          <h1>Your request was rejected! Please contact us or check your email.</h1>
         </div>
       </div>
-
-      <!-- Selected Specialty -->
-      <div v-if="selectedValue" class="selected-text">
-        You selected: <strong>{{ selectedValue }}</strong>
-      </div>
     </div>
   </div>
-  <div class="header" v-if="(userRole.includes('ROLE_DOCTOR') || userRole.includes('ROLE_DIAGNOSTIC'))">
-    <div v-if="pendingUserRequest.exists">
-      <h1 class="header">Your request is still in Pending status! Please come back later.</h1>
-    </div>
-    <div v-if="rejectedUserRequest.exists">
-      <h1 class="header">Your request was rejected! Please contact us or check your email.</h1>
-    </div>
-  </div>
-
 </template>
 
-
 <style scoped>
-.header h1{
+
+.main-container {
+  align-content: center;
   justify-content: center;
-  text-align: center;
-  margin-top: 50%;
-}
-/* General Styles */
-.horizontal-container {
-  max-width: 600px;
+  align-items: center;
+  padding: 60px 20px 20px;
+  width: 100%;
   display: flex;
-  align-items: flex-start;
-  gap: 20px;
-  padding: 20px;
+  flex-direction: column;
+  min-height: 80vh;
+  min-width: 100vh;
+  box-sizing: border-box;
 }
 
 /* Image Styling */
+.image-container {
+  position: relative;
+  top: 0;
+  left: 0;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  text-align: center;
+  padding-top: 60px;
+  margin-bottom: 20px;
+  overflow: hidden;
+}
 .aligned-image {
-  max-width: 400px;
+  width: 100%;
   height: auto;
-  border-radius: 10px;
+  display: block;
 }
 
-/* Footer Styling */
-.app-footer {
+/* Cards Container Styling */
+.cards-container {
   display: flex;
-  flex-direction: column;
-  width: 100%;
-}
-
-/* Input and Button Styling */
-.input-group {
-  display: flex;
-  align-items: center;
-  gap: 10px; /* Add space between input and button */
-  flex-wrap: nowrap; /* Prevent wrapping of input and button */
-}
-
-
-.search-input {
-  flex: 1;
-  padding: 10px;
-  font-size: 16px;
-  border: 1px solid #ccc;
-  border-radius: 5px;
-  outline: none;
-}
-
-.search-button {
-  padding: 10px 20px;
-  font-size: 16px;
-  background-color: #007bff;
-  color: white;
-  border: none;
-  border-radius: 5px;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
+  gap: 20px;
+  flex-direction: row;
   justify-content: center;
+  align-items: center;
+  padding-top: 20px;
+  flex-wrap: nowrap;
+  flex-grow: 1;
 }
 
-.search-button:hover {
-  background-color: #0056b3;
-}
-
-/* Dropdown Styling */
-.dropdown {
-  width: 100%;
-  margin-top: 10px;
-  border: 1px solid #ddd;
+.card {
+  flex: 1 1 300px; /* Allows cards to grow and shrink */
+  max-width: 300px; /* Set max width */
   background-color: #fff;
-  border-radius: 5px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  padding: 20px;
+  text-align: center;
+  transition: transform 0.3s ease;
 }
 
-.dropdown-item {
-  padding: 10px;
-  font-size: 14px;
-  cursor: pointer;
+.card-content h3 {
+  margin-top: 0;
+}
+
+.faded-image {
+  width: 100%;
+  max-height: 400px;
+  object-fit: cover;
+  mask-image: linear-gradient(to bottom, rgba(0, 0, 0, 1), rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0));
+}
+
+.card:hover {
+  transform: translateY(-5px);
+}
+
+.card h2 {
+  margin-bottom: 10px;
   color: #333;
 }
 
-.dropdown-item:hover {
-  background-color: #f1f1f1;
-}
-.search-button {
-  min-width: 50px;
+.card p {
+  color: #666;
 }
 
-
-/* Selected Text Styling */
-.selected-text {
-  margin-top: 20px;
-  font-size: 16px;
-  color: #333;
-}
-.input-group {
-  display: flex;
-  align-items: center;
-  gap: 10px; /* Space between input and button */
-  flex-wrap: nowrap; /* Keep input and button side-by-side */
-}
-
-/* Ensure input and button are responsive */
-.search-input {
-  padding: 10px;
-  font-size: 16px;
-  width: 250px; /* Default width */
-  max-width: 100%; /* Ensure it doesn't overflow */
-  border: 1px solid #ccc;
-  border-radius: 5px;
-}
-
-.search-button {
-  padding: 10px;
-  font-size: 16px;
-  background-color: #007bff;
-  color: white;
-  border: none;
-  border-radius: 5px;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
+.header h1 {
   justify-content: center;
+  text-align: center;
+  margin-top: 10px;
 }
 
-.search-button:hover {
-  background-color: #0056b3;
+/* Responsive Adjustments */
+@media (max-width: 1200px) {
+  .cards-container {
+    justify-content: space-around;
+  }
+
+  .card {
+    max-width: 250px;
+  }
 }
 
-/* Media Query for Small Screens */
-@media (max-width: 600px) {
-  .input-group {
-    flex-direction: column; /* Stack input and button vertically */
-    align-items: stretch; /* Stretch to take up full width */
-    gap: 10px; /* Space between stacked input and button */
+@media (max-width: 768px) {
+  .main-container{
+    min-width: 0;
   }
 
-  .search-input {
-    width: 100%; /* Make input full-width */
-    font-size: 14px; /* Adjust font size for readability */
+  .cards-container {
+    flex-direction: row;
+    justify-content: space-between;
+    flex-wrap: wrap;
   }
 
-  .search-button {
-    width: 100%; /* Make button full-width */
-    font-size: 14px; /* Adjust font size */
-  }
-
-  .horizontal-container {
-    flex-direction: column; /* Stack image and content vertically */
-    align-items: center; /* Center content */
-    gap: 15px;
-  }
-
-  .aligned-image {
-    max-width: 90%; /* Shrink image for smaller screens */
-  }
-
-  .aligned-text {
-    font-size: 16px; /* Adjust text size */
-    text-align: center;
-  }
-
-  .app-footer {
-    flex-wrap: wrap; /* Allow wrapping if needed */
-    padding: 10px; /* Adjust padding */
+  .card {
+    flex: 1 1 100%; /* Full width on small screens */
+    max-width: 100%; /* Remove max width on small screens */
   }
 }
 </style>
-

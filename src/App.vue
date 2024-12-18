@@ -18,9 +18,8 @@ onBeforeMount(() =>{
 </template>
 
 <style scoped>
-main {
-  flex: 1;
-  padding: 20px;
+body {
+  padding-top: 60px;
 }
 
 nav {

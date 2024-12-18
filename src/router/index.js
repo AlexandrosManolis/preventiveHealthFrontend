@@ -46,6 +46,24 @@ const router = createRouter({
       component: () => import('../views/UserProfile.vue'),
       meta: {requiresAuth: true}
     },
+    {
+      path: '/find_specialist',
+      name: 'findSpecialist',
+      component: () => import('../views/FindSpecialist.vue'),
+      meta: {requiresAuth: false}
+    },
+    {
+      path: '/appointments',
+      name: 'appointments',
+      component: () => import('../views/Appointments.vue'),
+      meta: {requiresAuth: true}
+    },
+    {
+      path: '/appointment_Requests',
+      name: 'appointmentRequests',
+      component: () => import('../views/AppointmentRequests.vue'),
+      meta: {requiresAuth: false}
+    },
   ],
 })
 
