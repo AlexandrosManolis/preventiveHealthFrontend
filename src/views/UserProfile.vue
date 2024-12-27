@@ -1,5 +1,5 @@
 <script setup>
-import { ref,reactive, onMounted, computed, watch } from 'vue'
+import { ref, onMounted, computed, watch } from 'vue'
 import { useRemoteData } from '@/composables/useRemoteData.js';
 import { useRoute, useRouter } from 'vue-router';
 import { useApplicationStore } from '@/stores/application.js';
@@ -50,7 +50,7 @@ const formDataRef = ref({
 },
 });
 
-const { data, error, loading, performRequest } = useRemoteData(urlRef, authRef, methodRef, formDataRef.value);
+const { data, performRequest } = useRemoteData(urlRef, authRef, methodRef, formDataRef.value);
 
 // Watch fetched data to populate form fields
 watch(data, (newData) => {
@@ -92,7 +92,7 @@ const onSubmit = async (event) => {
   urlRef.value = `${backendEnvVar}/api/user/${userIdRef.value}/edit-profile`;
   methodRef.value = "POST";
 
-  const { data, error, loading, performRequest } = useRemoteData(urlRef, authRef, methodRef,formDataRef);
+  const {error, performRequest } = useRemoteData(urlRef, authRef, methodRef,formDataRef);
 
   console.log("Submitting form data:",formDataRef.value);
 

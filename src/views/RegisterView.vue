@@ -346,8 +346,8 @@ const capitalize = (str) => str.charAt(0).toUpperCase() + str.slice(1)
     </div>
 
     <!-- Feedback -->
-    <div v-if="errorRef" class="alert alert-danger">{{ errorRef }}</div>
-    <div v-if="successRef" class="alert alert-success">{{ successRef }}</div>
+    <div v-if="errorRef" class="alert alert-danger error-text">{{ errorRef }}</div>
+    <div v-if="successRef" class="alert alert-success success-text">{{ successRef }}</div>
   </div>
 </template>
 
@@ -447,7 +447,7 @@ const capitalize = (str) => str.charAt(0).toUpperCase() + str.slice(1)
 }
 
 .signup-card form {
-  flex-grow: 1; /* This allows the form to expand and fill remaining space */
+  flex-grow: 1;
 }
 
 

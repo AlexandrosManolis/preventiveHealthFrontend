@@ -1,100 +1,242 @@
 <script setup>
-import { computed, onMounted, ref } from 'vue'
-import {useRouter} from 'vue-router'
+import { computed, onMounted, ref, watch } from 'vue'
+import { useRouter, useRoute } from 'vue-router'
 import { useApplicationStore } from '@/stores/application.js'
 import { useRemoteData } from '@/composables/useRemoteData.js'
 
-const applicationStore = useApplicationStore();
-const backendEnvVar = import.meta.env.VITE_BACKEND
+const backendEnvVar = import.meta.env.VITE_BACKEND;
 
-const selectedValue = ref('')
-const dropdownVisible = ref(false)
-
+const route = useRoute();
 const router = useRouter();
 
-const userRole = computed(() =>
-  applicationStore.isAuthenticated ? applicationStore.userData.roles : [],
-)
-const username = computed(() =>
-  applicationStore.isAuthenticated ? applicationStore.userData.username : null,
-)
+const formDataRef = ref({ 'specialty': '' });
+const results = ref([]); // Store search results
+const dropdownVisible = ref(false); // Track dropdown visibility
+const submitTriggered = ref(false);
 
-const urlRef = ref(`${backendEnvVar}/api/user/specialties`);
-const authRef= ref(false);
+const urlRef = ref(`${backendEnvVar}/api/user/find_specialist`);
+const authRef = ref(false);
 const methodRef = ref('GET');
+const searchPerformed = ref(false);
 
-const { performRequest, data, error } = useRemoteData(urlRef, authRef, methodRef)
+const { performRequest, data } = useRemoteData(urlRef, authRef, methodRef);
 
-onMounted(()=>{
-  performRequest();
+onMounted(() => {
+  const initialSpecialty = route.query.specialty || '';
+  formDataRef.value.specialty = initialSpecialty;
+  fetchSpecialists(initialSpecialty);
+  if (initialSpecialty) {
+    submitTriggered.value = true;
+  } else {
+    performRequest();
+  }
 });
 
-const filteredOptions = computed(() => {
-  const filter = selectedValue.value.toUpperCase()
-  return data.value.filter((data) => data.toUpperCase().includes(filter))
-})
+const fetchSpecialists = async (specialty) => {
+  if (specialty) {
+    urlRef.value = `${backendEnvVar}/api/user/find_specialist?specialty=${specialty}`;
+    await performRequest();
+    results.value = data.value;
 
+    // Fetch available specialties for the dropdown
+    await performRequest();
+  }
+};
+
+watch(
+  () => formDataRef.value.specialty,
+  async (newSpecialty) => {
+    if (newSpecialty && !submitTriggered.value) {
+      dropdownVisible.value = true;
+
+      // Fetch available specialties dynamically
+      urlRef.value = `${backendEnvVar}/api/user/find_specialist`;
+      await performRequest();
+    }
+  }
+);
+
+watch(
+  () => submitTriggered.value,
+  async (newSubmitTriggered) => {
+    if (newSubmitTriggered) {
+      const specialty = formDataRef.value.specialty || 'all';
+      urlRef.value = `${backendEnvVar}/api/user/find_specialist?specialty=${specialty}`;
+      await router.push({ name: 'findSpecialist', query: { specialty } });
+
+      const fetchedData = await performRequest();
+      if (fetchedData) {
+        results.value = fetchedData;
+      } else {
+        console.error('Error fetching updated data:', error.value);
+      }
+
+      searchPerformed.value = true;
+      formDataRef.value.specialty = '';
+      dropdownVisible.value = false;
+      submitTriggered.value = false;
+    }
+  }
+);
+
+// Filtered options for dropdown
+const filteredOptions = computed(() => {
+  const filter = formDataRef.value.specialty.toUpperCase();
+  return data.value.filter((option) => {
+    if (typeof option === 'string') {
+      return option.toUpperCase().includes(filter);
+    } else if (option && typeof option.name === 'string') {
+      return option.name.toUpperCase().includes(filter);
+    }
+    return false;
+  });
+});
+
+// Dropdown visibility and selection logic
 const toggleDropdown = () => {
-  dropdownVisible.value = !dropdownVisible.value
-}
+  dropdownVisible.value = !dropdownVisible.value;
+};
 
 const filterFunction = () => {
-  if (!dropdownVisible.value) {
-    dropdownVisible.value = true
-  }
-}
+  dropdownVisible.value = true;
+};
 
 const selectOption = (option) => {
-  selectedValue.value = option
-  dropdownVisible.value = false
-}
+  formDataRef.value.specialty = option;
+  dropdownVisible.value = false; // Hide the dropdown after selection
+};
 
-const searchSpecialty = () => {
-  if (selectedValue.value) {
-    alert(`Searching for: ${selectedValue.value}`)
-  } else {
-    alert('Please select or enter a specialty!')
+const onsubmit = async (event) => {
+  event.preventDefault();
+  if (!formDataRef.value.specialty) {
+    formDataRef.value.specialty = 'all';
   }
-}
+  submitTriggered.value = true;
+};
+
 const goback = () => router.push('/');
+
+const navigateToFindSpecialist = async () => {
+
+  formDataRef.value.specialty = '';
+  results.value = [];
+  dropdownVisible.value = false;
+  searchPerformed.value = false;
+
+  await router.push({ name: 'findSpecialist' });
+
+  performRequest();
+};
 </script>
 
 <template>
-  <!-- Content Container -->
   <div class="content-container" v-if="data">
-    <!-- Search Input with Search and Back Buttons -->
-    <h1 class="text-center">Find Your Doctor Now</h1>
+    <h1 class="text-center" @click="navigateToFindSpecialist">Find Your Doctor Now</h1>
     <div class="input-group">
-      <input
-        v-model="selectedValue"
-        @click="toggleDropdown"
-        type="text"
-        placeholder="Search specialty"
-        id="myInput"
-        @keyup="filterFunction"
-        class="search-input"
-      />
-      <button @click="searchSpecialty" class="search-button">🔍</button>
+      <input v-model="formDataRef.specialty" @click="toggleDropdown" @keyup="filterFunction" type="text" placeholder="Search specialty" id="myInput" class="search-input" />
+      <button @click="onsubmit" class="search-button">🔍</button>
       <button @click="goback" class="back-button">Back</button>
     </div>
 
-    <!-- Dropdown Menu -->
     <div class="dropdown" v-if="dropdownVisible && filteredOptions.length">
       <div v-for="option in filteredOptions" :key="option" class="dropdown-item" @click.prevent="selectOption(option)">
         {{ option }}
       </div>
     </div>
 
-    <!-- Selected Specialty -->
-    <div v-if="selectedValue" class="selected-text">
-      You selected: <strong>{{ selectedValue }}</strong>
+    <div v-if="results.length" class="user-table-container">
+      <h3>Searching for: {{route.query.specialty}}</h3>
+      <table class="modern-table">
+        <thead>
+        <tr>
+          <th>Full Name</th>
+          <th>Specialty</th>
+          <th>Address</th>
+          <th>Details</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr v-for="result in results" :key="result.id">
+          <td>{{ result.fullName }}</td>
+          <td>
+            <template v-if="result.roles.some(role => role.roleName === 'ROLE_DOCTOR')">
+              {{ result.doctor?.specialty || 'N/A' }}
+            </template>
+            <template v-else-if="result.roles.some(role => role.roleName === 'ROLE_DIAGNOSTIC')">
+              <div v-for="(specialty, index) in result.diagnosticCenter?.specialties || []" :key="index">
+                {{ specialty }}
+              </div>
+            </template>
+            <template v-else>N/A</template>
+          </td>
+          <td>
+            {{ result.doctor?.address || result.diagnosticCenter?.address || 'N/A' }}
+          </td>
+          <td>
+            <RouterLink :to="{name:'specialistDetails', params: {id:result.id}}" class="details-button bi bi-info-circle"> View Details</RouterLink>
+          </td>
+        </tr>
+        </tbody>
+      </table>
+    </div>
+    <div v-if="searchPerformed && results.length === 0">
+      <p>No results found.</p>
     </div>
   </div>
 </template>
 
 
-
 <style scoped>
+.user-table-container {
+  margin: 20px;
+  overflow-x: auto;
+  border-radius: 8px;
+  background-color: #f9f9f9;
+  padding: 15px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  min-width: 80vh;
+  width: 100%;
+  max-width: 600px;
+  box-sizing: border-box;
+}
+
+.modern-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: Arial, sans-serif;
+  font-size: 14px;
+}
+
+.modern-table th {
+  background-color: #007bff;
+  color: white;
+  text-align: left;
+  padding: 10px;
+}
+
+.modern-table td {
+  padding: 10px;
+  border-bottom: 1px solid #ddd;
+}
+
+.modern-table tr:hover {
+  background-color: #f1f1f1;
+}
+
+.details-button {
+  background-color: #007bff;
+  color: white;
+  border: none;
+  padding: 5px 10px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.details-button:hover {
+  background-color: #0056b3;
+}
+
+
 /* Content Container Styling */
 .content-container {
   display: flex;
@@ -180,8 +322,12 @@ const goback = () => router.push('/');
 }
 
 
-@media(max-width: 768px) {
-  .content-container{
+@media (max-width: 768px) {
+  .user-table-container{
+    min-width: auto;
+  }
+
+  .content-container {
     min-width: auto;
   }
 

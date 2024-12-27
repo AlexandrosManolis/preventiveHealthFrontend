@@ -39,8 +39,10 @@ const checkRequestExistence = async (username, status) => {
 }
 
 onMounted(async () => {
-  pendingUserRequest.value = await checkRequestExistence(username.value, 'pending')
-  rejectedUserRequest.value = await checkRequestExistence(username.value, 'rejected')
+  if(applicationStore.isAuthenticated){
+    pendingUserRequest.value = await checkRequestExistence(username.value, 'pending')
+    rejectedUserRequest.value = await checkRequestExistence(username.value, 'rejected')
+  }
 })
 
 

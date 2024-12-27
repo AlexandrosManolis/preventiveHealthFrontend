@@ -18,8 +18,8 @@ onBeforeMount(() =>{
 </template>
 
 <style scoped>
-body {
-  padding-top: 60px;
+:global(body) {
+  background-color: whitesmoke;
 }
 
 nav {
@@ -29,8 +29,8 @@ nav {
 }
 
 nav a {
-  text-decoration: none; /* Remove underline */
-  color: var(--color-text); /* Use theme text color */
+  text-decoration: none;
+  color: var(--color-text);
   font-size: 1rem;
 }
 

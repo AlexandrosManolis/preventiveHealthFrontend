@@ -11,6 +11,7 @@ export function useRemoteData(urlRef, authRef, methodRef = ref("GET"), bodyRef =
 
   const performRequest = () => {
     return new Promise((resolve) => {
+      loading.value = true;
       const headers = {
         'Content-Type': 'application/json'
       };
@@ -35,9 +36,12 @@ export function useRemoteData(urlRef, authRef, methodRef = ref("GET"), bodyRef =
               data.value = responseData;
               resolve(responseData);
             });
+          }else {
+            throw new Error(`Request failed with status ${response.status}: ${response.statusText}`);
           }
         })
         .catch((err) => {
+          console.error('Fetch error:', err);
           error.value = err;
         })
         .finally(() => {

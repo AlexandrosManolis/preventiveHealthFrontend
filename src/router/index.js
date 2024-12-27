@@ -53,6 +53,12 @@ const router = createRouter({
       meta: {requiresAuth: false}
     },
     {
+      path: '/specialist/:id/details',
+      name: 'specialistDetails',
+      component: () => import('../views/SpecialistDetails.vue'),
+      meta: {requiresAuth: false}
+    },
+    {
       path: '/appointments',
       name: 'appointments',
       component: () => import('../views/Appointments.vue'),
@@ -62,7 +68,7 @@ const router = createRouter({
       path: '/appointment_Requests',
       name: 'appointmentRequests',
       component: () => import('../views/AppointmentRequests.vue'),
-      meta: {requiresAuth: false}
+      meta: {requiresAuth: true}
     },
   ],
 })
