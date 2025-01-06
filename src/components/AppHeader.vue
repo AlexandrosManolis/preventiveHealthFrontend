@@ -55,8 +55,12 @@ onBeforeUnmount(() => {
             <RouterLink :to="{name : 'login'}" class="nav-link fw-bolder login-button">LogIn / Register</RouterLink>
           </li>
           <li class="nav-item" v-if="applicationStore.isAuthenticated">
+            <RouterLink :to="{name : 'appointments', params: {id: applicationStore.userData.id}}" class="nav-link fw-bolder login-button">Appointments</RouterLink>
+          </li>
+          <li class="nav-item" v-if="applicationStore.isAuthenticated">
             <RouterLink :to="{name : 'userProfile', params: {id: applicationStore.userData.id}}" class="nav-link fw-bolder login-button">Profile</RouterLink>
           </li>
+
           <!-- Dropdown for Logged-in User -->
           <li class="nav-item" v-if="applicationStore.isAuthenticated">
             <div class="dropdown">

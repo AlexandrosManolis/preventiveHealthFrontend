@@ -73,8 +73,8 @@ onMounted(async () => {
               <p>Search for healthcare specialists in your area.</p>
             </div>
           </RouterLink>
-          <RouterLink :to="{name : 'appointments'}" class="card btn fw-bolder btn-dark"
-          v-if="(userRole.includes('ROLE_DOCTOR') || userRole.includes('ROLE_DIAGNOSTIC')) && !pendingUserRequest.exists && !rejectedUserRequest.exists">
+          <RouterLink :to="{name : 'appointments', params: {id: applicationStore.userData.id}}" class="card btn fw-bolder btn-dark"
+          v-if="applicationStore.isAuthenticated">
             <div class="card-content">
               <h2>Appointments</h2>
               <p>Check your appointments.</p>
@@ -211,8 +211,8 @@ onMounted(async () => {
   }
 
   .card {
-    flex: 1 1 100%; /* Full width on small screens */
-    max-width: 100%; /* Remove max width on small screens */
+    flex: 1 1 100%;
+    max-width: 100%;
   }
 }
 </style>

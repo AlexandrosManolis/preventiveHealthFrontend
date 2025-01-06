@@ -1,7 +1,6 @@
 <script setup>
 import { computed, onMounted, ref, watch } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
-import { useApplicationStore } from '@/stores/application.js'
 import { useRemoteData } from '@/composables/useRemoteData.js'
 
 const backendEnvVar = import.meta.env.VITE_BACKEND;
@@ -124,7 +123,6 @@ const navigateToFindSpecialist = async () => {
   searchPerformed.value = false;
 
   await router.push({ name: 'findSpecialist' });
-
   performRequest();
 };
 </script>
@@ -152,6 +150,7 @@ const navigateToFindSpecialist = async () => {
           <th>Full Name</th>
           <th>Specialty</th>
           <th>Address</th>
+          <th>Type</th>
           <th>Details</th>
         </tr>
         </thead>
@@ -170,10 +169,13 @@ const navigateToFindSpecialist = async () => {
             <template v-else>N/A</template>
           </td>
           <td>
-            {{ result.doctor?.address || result.diagnosticCenter?.address || 'N/A' }}
+            {{ result.doctor?.address || result.diagnosticCenter?.address || 'N/A' }}, {{ result.doctor?.city || result.diagnosticCenter?.city || 'N/A' }},
+            {{ result.doctor?.state || result.diagnosticCenter?.state || 'N/A' }}
           </td>
-          <td>
-            <RouterLink :to="{name:'specialistDetails', params: {id:result.id}}" class="details-button bi bi-info-circle"> View Details</RouterLink>
+          <td v-if="result.roles.some(role => role.roleName === 'ROLE_DOCTOR')">Doctor</td>
+          <td v-if="result.roles.some(role => role.roleName === 'ROLE_DIAGNOSTIC')">Diagnostic Center</td>
+          <td >
+            <RouterLink :to="{name:'specialistDetails', params: {id:result.id}, query: {specialty: route.query.specialty}}" class="details-button bi bi-info-circle"> View Details</RouterLink>
           </td>
         </tr>
         </tbody>
@@ -210,12 +212,13 @@ const navigateToFindSpecialist = async () => {
 .modern-table th {
   background-color: #007bff;
   color: white;
-  text-align: left;
+  text-align: center;
   padding: 10px;
 }
 
 .modern-table td {
   padding: 10px;
+  text-align: center;
   border-bottom: 1px solid #ddd;
 }
 
