@@ -132,8 +132,8 @@ const navigateToFindSpecialist = async () => {
     <h1 class="text-center" @click="navigateToFindSpecialist">Find Your Doctor Now</h1>
     <div class="input-group">
       <input v-model="formDataRef.specialty" @click="toggleDropdown" @keyup="filterFunction" type="text" placeholder="Search specialty" id="myInput" class="search-input" />
-      <button @click="onsubmit" class="search-button">🔍</button>
-      <button @click="goback" class="back-button">Back</button>
+      <button @click="onsubmit" class="btn btn-primary">🔍</button>
+      <button @click="goback" class="btn btn-secondary">Back</button>
     </div>
 
     <div class="dropdown" v-if="dropdownVisible && filteredOptions.length">
@@ -175,7 +175,7 @@ const navigateToFindSpecialist = async () => {
           <td v-if="result.roles.some(role => role.roleName === 'ROLE_DOCTOR')">Doctor</td>
           <td v-if="result.roles.some(role => role.roleName === 'ROLE_DIAGNOSTIC')">Diagnostic Center</td>
           <td >
-            <RouterLink :to="{name:'specialistDetails', params: {id:result.id}, query: {specialty: route.query.specialty}}" class="details-button bi bi-info-circle"> View Details</RouterLink>
+            <RouterLink :to="{name:'specialistDetails', params: {id:result.id}, query: {specialty: route.query.specialty}}" class="btn btn-primary bi bi-info-circle"> View Details</RouterLink>
           </td>
         </tr>
         </tbody>
@@ -210,7 +210,7 @@ const navigateToFindSpecialist = async () => {
 }
 
 .modern-table th {
-  background-color: #007bff;
+  background-color: #335c81;
   color: white;
   text-align: center;
   padding: 10px;
@@ -225,20 +225,6 @@ const navigateToFindSpecialist = async () => {
 .modern-table tr:hover {
   background-color: #f1f1f1;
 }
-
-.details-button {
-  background-color: #007bff;
-  color: white;
-  border: none;
-  padding: 5px 10px;
-  border-radius: 4px;
-  cursor: pointer;
-}
-
-.details-button:hover {
-  background-color: #0056b3;
-}
-
 
 /* Content Container Styling */
 .content-container {
@@ -270,33 +256,15 @@ const navigateToFindSpecialist = async () => {
   outline: none;
 }
 
-.search-button,
-.back-button {
-  padding: 10px 20px;
-  font-size: 16px;
-  color: white;
+.btn-primary,
+.btn-secondary {
+  padding: 0.75rem;
+  font-size: inherit;
   border: none;
   border-radius: 5px;
   cursor: pointer;
 }
 
-.search-button {
-  background-color: #007bff;
-}
-
-.search-button:hover {
-  background-color: #0056b3;
-}
-
-.back-button {
-  background-color: #6c757d;
-}
-
-.back-button:hover {
-  background-color: #5a6268;
-}
-
-/* Dropdown Styling */
 .dropdown {
   width: 100%;
   margin-top: 10px;
@@ -317,14 +285,6 @@ const navigateToFindSpecialist = async () => {
   background-color: #f1f1f1;
 }
 
-/* Selected Text Styling */
-.selected-text {
-  margin-top: 20px;
-  font-size: 16px;
-  color: #333;
-}
-
-
 @media (max-width: 768px) {
   .user-table-container{
     min-width: auto;
@@ -335,11 +295,6 @@ const navigateToFindSpecialist = async () => {
   }
 
   .search-input {
-    width: 100%;
-    font-size: 14px;
-  }
-
-  .search-button {
     width: 100%;
     font-size: 14px;
   }

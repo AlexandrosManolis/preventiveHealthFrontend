@@ -265,7 +265,7 @@ const goBack = ref(() => {
             <button class="btn btn-secondary" style="margin-top: 2%; margin-right: 2%" @click="goBack">
               Back
             </button>
-            <button style="margin-top: 2%" class="btn btn-success" :disabled="!formDataRef.time" @click="onsubmit">
+            <button style="margin-top: 2%" class="btn btn-primary" :disabled="!formDataRef.time" @click="onsubmit">
               Send Appointment Request
             </button>
           </div>
@@ -296,9 +296,6 @@ const goBack = ref(() => {
 .availability-container .dropdown-item {
   max-height: 0; /* Collapsed state */
   overflow: hidden;
-  transition:
-    max-height 0.3s ease-in-out,
-    opacity 0.3s ease-in-out;
   opacity: 0; /* Initially hidden */
   padding: 0; /* Prevent extra padding when collapsed */
 }

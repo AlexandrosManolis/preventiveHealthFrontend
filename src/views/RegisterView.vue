@@ -531,17 +531,6 @@ const capitalize = (str) => str.charAt(0).toUpperCase() + str.slice(1)
   transition: background-color 0.5s;
 }
 
-.btn-primary {
-  width: 200px;
-  background:  linear-gradient(315deg, whitesmoke 0%, #335c81 45%);
-  color: white;
-  border: none;
-}
-
-.btn-primary:hover {
-  background: linear-gradient(315deg, #007bff 0%,  #182b3a 80%);
-}
-
 .btn-secondary {
   background: #95a5a6;
   color: white;
@@ -605,12 +594,6 @@ const capitalize = (str) => str.charAt(0).toUpperCase() + str.slice(1)
 
   .schedule-container {
     padding: 10px; /* Reduce padding for smaller screens */
-  }
-
-  .container {
-    margin-top: 85px;
-    flex-direction: column; /* Stack h1 and form vertically */
-    gap: 15px; /* Adjust gap for smaller screens */
   }
 
   .container h1 {
