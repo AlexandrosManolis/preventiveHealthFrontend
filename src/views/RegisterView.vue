@@ -10,7 +10,7 @@ const router = useRouter()
 const formDataRef = ref({
   'username': '', 'password': '', 'email': '', 'fullName': '', 'phoneNumber': '',
   'gender': '', 'birthday': '', 'amka': '',
-  'address': '', 'city': '', 'state': '', 'specialty': '', 'doy': '', 'afm': '', 'schedules': [],
+  'address': '', 'city': '', 'state': '', 'specialty': '', 'doy': '', 'afm': '', 'openingHours': [],
   'specialties': [], 'specialtiesString': ''
 })
 
@@ -47,7 +47,7 @@ const prepareSpecialtiesInput = () => {
 const validateFormData = () => {
   const {
     username, password, email, fullName, phoneNumber, gender, birthday, amka,
-    address, city, state, specialty, doy, afm, schedules, specialties
+    address, city, state, specialty, doy, afm, openingHours, specialties
   } = formDataRef.value
 
   // Common Validations
@@ -149,7 +149,7 @@ const checkUserExistence = async (username, email) => {
   }
 }
 
-const prepareScheduleInput = () => {
+const prepareOpeningHourInput = () => {
   const formatTime = (time) => {
     if (!time) return null
     const match24 = time.match(/^(\d{1,2}):(\d{2})$/)
@@ -174,7 +174,7 @@ const prepareScheduleInput = () => {
     return null
   }
 
-  formDataRef.value.schedules = ['MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY']
+  formDataRef.value.openingHours = ['MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY']
     .map((day, index) => {
       const startTime = formatTime(formDataRef.value[`startTime${index}`])
       const endTime = formatTime(formDataRef.value[`endTime${index}`])
@@ -208,11 +208,11 @@ const onSubmit = async (event) => {
 
   prepareSpecialtiesInput()
 
-  // Step 1: Perform synchronous validation
+  // Perform synchronous validation
   if (!validateFormData()) return
 
 
-  // Step 2: Perform asynchronous validation
+  // Perform asynchronous validation
   try {
     const isUserExist = await checkUserExistence(formDataRef.value.username, formDataRef.value.email)
 
@@ -220,8 +220,9 @@ const onSubmit = async (event) => {
       showError('Username or email already exists.')
       return // Stop submission if user exists
     }
-    // Step 3: Prepare data and submit the form
-    prepareScheduleInput()
+
+    // Prepare data and submit the form
+    prepareOpeningHourInput()
     await performRequest()
     setTimeout(() => {
       successRef.value = `${capitalize(userType.value)} registered successfully! Redirecting to home screen...`
@@ -326,7 +327,7 @@ const capitalize = (str) => str.charAt(0).toUpperCase() + str.slice(1)
 
           <!-- Schedule Section -->
           <div class="schedule-container">
-            <h3 class="schedule-title">Weekly Schedule</h3>
+            <h3 class="schedule-title">Weekly Opening Hours</h3>
             <div v-for="(day, index) in ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday']" :key="index" class="schedule-row">
               <label class="schedule-day">{{ day }}</label>
               <div class="time-fields">

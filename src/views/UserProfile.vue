@@ -34,14 +34,14 @@ const formDataRef = ref({
     'specialty': '',
     'doy': '',
     'afm': '',
-    'schedules': [],
+    'openingHours': [],
   },
-  'diagnostic': {
+  'diagnosticCenter': {
     'address': '',
     'city': '',
     'state': '',
     'afm': '',
-    'schedules': [],
+    'openingHours': [],
     'specialties': [],
     'specialtiesString': '',
   },
@@ -70,9 +70,9 @@ const onSubmit = async (event) => {
   event.preventDefault();
   if(profileRole.value.includes('ROLE_PATIENT')){
     formDataRef.value.doctor = null;
-    formDataRef.value.diagnostic = null;
+    formDataRef.value.diagnosticCenter = null;
   }else if(profileRole.value.includes('ROLE_DOCTOR')){
-    formDataRef.value.diagnostic = null;
+    formDataRef.value.diagnosticCenter = null;
     formDataRef.value.patient = null;
   }else if(profileRole.value.includes('ROLE_DIAGNOSTIC')){
     formDataRef.value.patient = null;
@@ -80,7 +80,7 @@ const onSubmit = async (event) => {
   }else if(profileRole.value.includes('ROLE_ADMIN')){
     formDataRef.value.patient = null;
     formDataRef.value.doctor = null;
-    formDataRef.value.diagnostic = null;
+    formDataRef.value.diagnosticCenter = null;
   }
 
   // Ensure registerRequest is defined
@@ -121,49 +121,49 @@ const profileRole = computed(() =>
 );
 
 const addSpecialty = () => {
-  formDataRef.value.diagnostic.specialties.push('');
+  formDataRef.value.diagnosticCenter.specialties.push('');
 };
 
 // Method to remove a specialty
 const removeSpecialty = (index) => {
-  formDataRef.value.diagnostic.specialties.splice(index, 1);
+  formDataRef.value.diagnosticCenter.specialties.splice(index, 1);
 };
 
-// Method to check if a schedule exists for a specific day
-const scheduleExists = (day) => {
-  const schedules = profileRole.value.includes('ROLE_DOCTOR')
-    ? formDataRef.value.doctor.schedules
-    : formDataRef.value.diagnostic.schedules;
+// Method to check if a openingHours exists for a specific day
+const openingHoursExists = (day) => {
+  const openingHours = profileRole.value.includes('ROLE_DOCTOR')
+    ? formDataRef.value.doctor.openingHours
+    : formDataRef.value.diagnosticCenter.openingHours;
 
-  return schedules.some(schedule => schedule.dayOfWeek.toLowerCase() === day.toLowerCase());
+  return openingHours.some(openingHour => openingHour.dayOfWeek.toLowerCase() === day.toLowerCase());
 };
 
-// Method to add a schedule for a specific day
-const addSchedule = (day) => {
-  const newSchedule = {
+// Method to add a openingHour for a specific day
+const addOpeningHour = (day) => {
+  const newOpeningHour = {
     dayOfWeek: day,
     startTime: '', // Default empty
     endTime: '',   // Default empty
   };
   if (profileRole.value.includes('ROLE_DOCTOR')) {
-    formDataRef.value.doctor.schedules.push(newSchedule);
+    formDataRef.value.doctor.openingHours.push(newOpeningHour);
   } else {
-    formDataRef.value.diagnostic.schedules.push(newSchedule);
+    formDataRef.value.diagnosticCenter.openingHours.push(newOpeningHour);
   }
 };
 
-const removeSchedule = (index) => {
+const removeOpeningHour = (index) => {
   console.log("Before Remove: ", profileRole.value.includes('ROLE_DOCTOR')
-    ? formDataRef.value.doctor.schedules
-    : formDataRef.value.diagnostic.schedules);
+    ? formDataRef.value.doctor.openingHours
+    : formDataRef.value.diagnosticCenter.openingHours);
 
-  const schedules = profileRole.value.includes('ROLE_DOCTOR')
-    ? formDataRef.value.doctor.schedules
-    : formDataRef.value.diagnostic.schedules;
+  const openingHours = profileRole.value.includes('ROLE_DOCTOR')
+    ? formDataRef.value.doctor.openingHours
+    : formDataRef.value.diagnosticCenter.openingHours;
 
-  if (index >= 0 && index < schedules.length) {
-    schedules.splice(index, 1);
-    console.log("After Remove: ", schedules);
+  if (index >= 0 && index < openingHours.length) {
+    openingHours.splice(index, 1);
+    console.log("After Remove: ", openingHours);
   }
 };
 
@@ -229,39 +229,39 @@ const goback = () => router.push('/')
             <div class="col-md-6">
               <label class="small mb-1" for="afm">AFM</label>
               <input class="form-control" id="afm" type="text" placeholder="Enter your afm"
-                     v-model="formDataRef[profileRole.includes('ROLE_DOCTOR') ? 'doctor' : 'diagnostic'].afm" />
+                     v-model="formDataRef[profileRole.includes('ROLE_DOCTOR') ? 'doctor' : 'diagnosticCenter'].afm" />
             </div>
             <div class="col-md-6">
               <label class="small mb-1" for="address">Address</label>
               <input class="form-control" id="address" type="text" placeholder="Enter your address"
-                     v-model="formDataRef[profileRole.includes('ROLE_DOCTOR') ? 'doctor' : 'diagnostic'].address" />
+                     v-model="formDataRef[profileRole.includes('ROLE_DOCTOR') ? 'doctor' : 'diagnosticCenter'].address" />
             </div>
             <div class="col-md-6">
               <label class="small mb-1" for="city">City</label>
               <input class="form-control" id="city" type="text" placeholder="Enter your city"
-                     v-model="formDataRef[profileRole.includes('ROLE_DOCTOR') ? 'doctor' : 'diagnostic'].city" />
+                     v-model="formDataRef[profileRole.includes('ROLE_DOCTOR') ? 'doctor' : 'diagnosticCenter'].city" />
             </div>
             <div class="col-md-6">
               <label class="small mb-1" for="state">State</label>
               <input class="form-control" id="state" type="text" placeholder="Enter your state"
-                     v-model="formDataRef[profileRole.includes('ROLE_DOCTOR') ? 'doctor' : 'diagnostic'].state" />
+                     v-model="formDataRef[profileRole.includes('ROLE_DOCTOR') ? 'doctor' : 'diagnosticCenter'].state" />
             </div>
             <div class="col-md-6">
               <label class="small mb-1" for="doy">DOY</label>
               <input class="form-control" id="doy" type="text" placeholder="Enter your DOY"
-                     v-model="formDataRef[profileRole.includes('ROLE_DOCTOR') ? 'doctor' : 'diagnostic'].doy" />
+                     v-model="formDataRef[profileRole.includes('ROLE_DOCTOR') ? 'doctor' : 'diagnosticCenter'].doy" />
             </div>
             <div class="col-md-6" v-if="profileRole.includes('ROLE_DOCTOR')">
               <label class="small mb-1" for="specialty">Specialty</label>
               <input class="form-control" id="specialty" type="text" placeholder="Enter your specialty"
-                     v-model="formDataRef[profileRole.includes('ROLE_DOCTOR') ? 'doctor' : 'diagnostic'].specialty" />
+                     v-model="formDataRef[profileRole.includes('ROLE_DOCTOR') ? 'doctor' : 'diagnosticCenter'].specialty" />
             </div>
 
             <!-- Specialties for Diagnostic Role -->
-            <div class="col-md-6" v-if="profileRole.includes('ROLE_DIAGNOSTIC')" v-for="(specialty, index) in formDataRef.value.diagnostic.specialties" :key="index">
+            <div class="col-md-6" v-if="profileRole.includes('ROLE_DIAGNOSTIC')" v-for="(specialty, index) in formDataRef.diagnosticCenter.specialties" :key="index">
               <label class="small mb-1" for="specialty">Specialty {{ index + 1 }}</label>
               <input class="form-control mb-2" id="specialty" type="text" placeholder="Enter specialty"
-                     v-model="formDataRef.value.diagnostic.specialties[index]" />
+                     v-model="formDataRef.diagnosticCenter.specialties[index]" />
               <!-- Button to remove specialty -->
               <button class="btn btn-danger" @click="removeSpecialty(index)">Remove</button>
             </div>
@@ -270,31 +270,31 @@ const goback = () => router.push('/')
             <button class="btn btn-primary" @click="addSpecialty" v-if="profileRole.includes('ROLE_DIAGNOSTIC')">Add Specialty</button>
 
 
-            <!-- Schedules for Doctor or Diagnostic Role -->
-            <div class="col-md-6" v-if="profileRole.includes('ROLE_DOCTOR') || profileRole.includes('ROLE_DIAGNOSTIC')" v-for="(schedule, index) in (profileRole.includes('ROLE_DOCTOR') ? formDataRef.doctor.schedules : formDataRef.diagnostic.schedules)" :key="schedule.dayOfWeek + schedule.startTime">
+            <!-- openingHours for Doctor or Diagnostic Role -->
+            <div class="col-md-6" v-if="profileRole.includes('ROLE_DOCTOR') || profileRole.includes('ROLE_DIAGNOSTIC')" v-for="(openingHour, index) in (profileRole.includes('ROLE_DOCTOR') ? formDataRef.doctor.openingHours : formDataRef.diagnosticCenter.openingHours)" :key="openingHour.dayOfWeek + openingHour.startTime">
               <div class="schedule-container ">
                 <div class="schedule-item">
                   <!-- Day of Week -->
                   <label class="form-control">Day of Week</label>
-                  <input type="text" class="form-control" v-model="schedule.dayOfWeek" readonly />
+                  <input type="text" class="form-control" v-model="openingHour.dayOfWeek" readonly />
 
                   <!-- Start Time -->
                   <label class="form-control">Start Time</label>
-                  <input type="time" class="form-control" v-model="schedule.startTime" />
+                  <input type="time" class="form-control" v-model="openingHour.startTime" />
 
                   <!-- End Time -->
                   <label class="form-control">End Time</label>
-                  <input type="time" class="form-control" v-model="schedule.endTime" />
+                  <input type="time" class="form-control" v-model="openingHour.endTime" />
 
                   <!-- Remove Button -->
-                  <button class="btn btn-danger" @click="removeSchedule(index)">Remove</button>
+                  <button class="btn btn-danger" @click="removeOpeningHour(index)">Remove</button>
                 </div>
               </div></div>
 
             <div class="button-container">
               <template v-for="day in ['MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY']">
-                <button :key="day" class="btn btn-primary" v-if="!scheduleExists(day)" @click="addSchedule(day)">
-                  Add Schedule for {{ day }}
+                <button :key="day" class="btn btn-primary" v-if="!openingHoursExists(day)" @click="addOpeningHour(day)">
+                  Add Opening Hour for {{ day }}
                 </button>
               </template>
             </div>
@@ -315,28 +315,15 @@ const goback = () => router.push('/')
 
 .schedule-container {
   display: flex;
-  flex-direction: column; /* Stack items vertically */
-  gap: 10px; /* Optional: Adds space between schedules */
+  flex-direction: column;
+  gap: 10px;
 }
 
 .schedule-item {
-  display: block; /* Ensures each schedule takes a full line */
-  width: 100%; /* Optional: Make it full width */
+  display: block;
+  width: 100%;
 }
 
-.schedule-row {
-  display: flex;
-  gap: 1rem; /* Spacing between inputs/buttons */
-  align-items: center;
-  flex: 1 1 100%; /* Each row takes full width */
-  margin-bottom: 0.5rem;
-}
-
-.remove-button {
-  flex: 0 0 auto;
-}
-
-/* Optional: Uniform input styling */
 .form-control {
   padding: 0.5rem;
   font-size: 0.9rem;
@@ -350,8 +337,8 @@ const goback = () => router.push('/')
 
 /* Input styling */
 .container input {
-  width: 100%; /* Makes sure inputs take up the full width of their container */
-  padding: 10px; /* Adds padding for better appearance */
+  width: 100%;
+  padding: 10px;
 }
 
 /* Ensures form fields in a small screen stack vertically */

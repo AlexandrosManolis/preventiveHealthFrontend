@@ -22,7 +22,7 @@ const checkRequestExistence = async (username, status) => {
   const authRef = ref(true)
   const methodRef = ref('GET')
 
-  const { performRequest, data, error } = useRemoteData(urlRef, authRef, methodRef)
+  const { performRequest} = useRemoteData(urlRef, authRef, methodRef)
 
   try {
     const responseData = await performRequest()
@@ -39,7 +39,7 @@ const checkRequestExistence = async (username, status) => {
 }
 
 onMounted(async () => {
-  if(applicationStore.isAuthenticated){
+  if(applicationStore.isAuthenticated && (userRole.value.includes("ROLE_DOCTOR") || userRole.value.includes("ROLE_DIAGNOSTIC"))){
     pendingUserRequest.value = await checkRequestExistence(username.value, 'pending')
     rejectedUserRequest.value = await checkRequestExistence(username.value, 'rejected')
   }
@@ -74,7 +74,7 @@ onMounted(async () => {
             </div>
           </RouterLink>
           <RouterLink :to="{name : 'appointments', params: {id: applicationStore.userData.id}}" class="card btn fw-bolder btn-dark"
-          v-if="applicationStore.isAuthenticated">
+          v-if="applicationStore.isAuthenticated && !pendingUserRequest.exists && !rejectedUserRequest.exists">
             <div class="card-content">
               <h2>Appointments</h2>
               <p>Check your appointments.</p>

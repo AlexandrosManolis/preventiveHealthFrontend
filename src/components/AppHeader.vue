@@ -2,6 +2,7 @@
 import { RouterLink } from 'vue-router'
 import { useApplicationStore } from '@/stores/application.js'
 import { computed, ref, onBeforeUnmount, onMounted } from 'vue'
+
 const applicationStore = useApplicationStore()
 
 const isNavbarOpen = ref(false);
@@ -16,6 +17,7 @@ const roles = computed(() =>
 const toggleNavbar = () => {
   isNavbarOpen.value = !isNavbarOpen.value; // Toggle the navbar state
 };
+
 // Function to close the navbar if the screen size exceeds the breakpoint
 const handleResize = () => {
   if (window.innerWidth > 768) {
@@ -89,10 +91,6 @@ onBeforeUnmount(() => {
 
 .login-button {
   color: black; /* Set the text color to black */
-}
-
-.register-button {
-  color: whitesmoke;
 }
 
 /* Make navbar items align properly */
