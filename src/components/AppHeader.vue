@@ -56,11 +56,23 @@ onBeforeUnmount(() => {
           <li class="nav-item" v-if="!applicationStore.isAuthenticated">
             <RouterLink :to="{name : 'login'}" class="nav-link fw-bolder login-button">LogIn / Register</RouterLink>
           </li>
-          <li class="nav-item" v-if="applicationStore.isAuthenticated">
-            <RouterLink :to="{name : 'appointments', params: {id: applicationStore.userData.id}}" class="nav-link fw-bolder login-button">Appointments</RouterLink>
+
+          <li class="nav-item" v-if="roles.includes('ROLE_PATIENT') || !applicationStore.isAuthenticated">
+              <RouterLink :to="{name : 'findSpecialist'}" class="nav-link fw-bolder login-button">Find Specialist</RouterLink>
           </li>
+
           <li class="nav-item" v-if="applicationStore.isAuthenticated">
-            <RouterLink :to="{name : 'userProfile', params: {id: applicationStore.userData.id}}" class="nav-link fw-bolder login-button">Profile</RouterLink>
+            <div class="dropdown">
+              <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton" data-bs-toggle="dropdown" aria-expanded="false" style="text-align: center">
+                Appointments
+              </button>
+              <ul class="dropdown-menu">
+                <RouterLink :to="{name : 'appointments', params: {id: applicationStore.userData.id}}" class="btn login-button appointment-item">Appointments</RouterLink>
+                <RouterLink :to="{name : 'appointmentRequests', params: {id: applicationStore.userData.id}}" class="btn login-button appointment-item" v-if="(roles.includes('ROLE_DOCTOR') || roles.includes('ROLE_DIAGNOSTIC'))">
+                  Appointment Requests
+                </RouterLink>
+              </ul>
+            </div>
           </li>
 
           <!-- Dropdown for Logged-in User -->
@@ -69,11 +81,13 @@ onBeforeUnmount(() => {
               <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton" data-bs-toggle="dropdown" aria-expanded="false">
                 Logged in as
               </button>
-              <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+              <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton" style="text-align: center">
                 <li class="dropdown-item disabled text-dark">{{ username }}</li>
                 <li class="dropdown-item disabled text-dark" v-for="role in roles" :key="role">{{ role }}</li>
+                <RouterLink :to="{name : 'userProfile', params: {id: applicationStore.userData.id}}" class="btn login-button profile" v-if="applicationStore.isAuthenticated">Profile</RouterLink>
+
                 <li class="dropdown-divider"></li>
-                <router-link :to="{ name: 'logout' }" class="nav-link text-dark">Logout</router-link>
+                <RouterLink :to="{ name: 'logout' }" class="nav-link text-dark">Logout</RouterLink>
               </ul>
             </div>
           </li>
@@ -84,22 +98,47 @@ onBeforeUnmount(() => {
 </template>
 
 <style scoped>
+.appointment-item:hover, .profile:hover{
+  background-color: var(--bs-secondary) !important;
+  color: white;
+}
+
+.appointment-item {
+  position: relative;
+  background-color: transparent;
+  width: auto;
+  transition-duration: 0.4s;
+  cursor: pointer;
+  border: 1px solid var(--bs-secondary);
+  border-radius: 3px;
+  margin: 5px;
+}
+
+.profile{
+  position: relative;
+  transition-duration: 0.4s;
+  cursor: pointer;
+  border: 1px solid var(--bs-secondary);
+  border-radius: 3px;
+  margin: 0 5px;
+  width: auto;
+  display: block;
+}
 
 .btn{
   margin-right: 10px;
 }
 
 .login-button {
-  color: black; /* Set the text color to black */
+  color: black;
 }
 
-/* Make navbar items align properly */
 .navbar {
   position: fixed;
   top: 0;
   left: 0;
-  width: 100%; /* Full width of the screen */
-  height: 60px; /* Fixed height */
+  width: 100%;
+  height: 60px;
   background:  linear-gradient(315deg, whitesmoke 0%, #335c81 50%);
 
   display: flex;
@@ -123,20 +162,21 @@ onBeforeUnmount(() => {
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3E%3Cpath stroke='rgba%2888, 88, 88, 0.7%29' stroke-width='2' d='M4 7h22M4 15h22M4 23h22'/%3E%3C/svg%3E");
 }
 
-/* Body adjustment for fixed navbar */
+
 body {
-  padding-top: 60px; /* Adjust content to avoid overlap */
+  padding-top: 60px;
 }
-/* Adjust padding and align text */
+
 .nav-link {
   margin: 0 5px;
 }
 
-/* Fix dropdown alignment for Register and Logged-in dropdown */
+
 .dropdown-menu {
-  text-align: left; /* Align items inside the dropdown */
-  margin: 0; /* Reset default margins */
-  transform: translate(0, 0); /* Align dropdown with the button */
+  background:white;
+  text-align: left;
+  margin: 0;
+  transform: translate(0, 0);
 }
 
 /* Style for larger screens */
