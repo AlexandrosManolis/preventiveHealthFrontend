@@ -65,7 +65,13 @@ const router = createRouter({
       meta: {requiresAuth: true}
     },
     {
-      path: '/appointment_Requests',
+      path: '/user/:id/appointment/:appointmentId/details',
+      name: 'appointmentDetails',
+      component: () => import('../views/AppointmentDetails.vue'),
+      meta: {requiresAuth: true}
+    },
+    {
+      path: '/:id/appointmentRequests',
       name: 'appointmentRequests',
       component: () => import('../views/AppointmentRequests.vue'),
       meta: {requiresAuth: true}

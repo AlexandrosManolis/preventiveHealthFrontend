@@ -80,7 +80,7 @@ onMounted(async () => {
               <p>Check your appointments.</p>
             </div>
           </RouterLink>
-          <RouterLink :to="{name : 'appointmentRequests'}" class="card btn fw-bolder btn-dark"
+          <RouterLink :to="{name : 'appointmentRequests', params: {id: applicationStore.userData.id}}" class="card btn fw-bolder btn-dark"
           v-if="(userRole.includes('ROLE_DOCTOR') || userRole.includes('ROLE_DIAGNOSTIC')) && !pendingUserRequest.exists && !rejectedUserRequest.exists">
             <div class="card-content">
               <h2>Appointment Requests</h2>
