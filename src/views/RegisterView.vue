@@ -1,7 +1,9 @@
 <script setup xmlns="http://www.w3.org/1999/html">
-import { ref, computed, watch } from 'vue'
+import { ref, computed, watch, onMounted } from 'vue'
 import { useRemoteData } from '@/composables/useRemoteData.js'
 import { useRoute, useRouter } from 'vue-router'
+import Multiselect from 'vue-multiselect'
+import "vue-multiselect/dist/vue-multiselect.min.css";
 
 const backendEnvVar = import.meta.env.VITE_BACKEND
 const route = useRoute()
@@ -11,7 +13,7 @@ const formDataRef = ref({
   'username': '', 'password': '', 'email': '', 'fullName': '', 'phoneNumber': '',
   'gender': '', 'birthday': '', 'amka': '',
   'address': '', 'city': '', 'state': '', 'specialty': '', 'doy': '', 'afm': '', 'openingHours': [],
-  'specialties': [], 'specialtiesString': ''
+  'specialties': []
 })
 
 
@@ -25,7 +27,7 @@ const methodRef = ref('POST')
 
 const { performRequest } = useRemoteData(urlRef, authRef, methodRef, formDataRef)
 
-const currentStep = ref(1) // Track the current step of the form
+const currentStep = ref(1)
 
 watch(userType, () => {
   currentStep.value = 1
@@ -36,12 +38,6 @@ const showError = (message) => {
   errorRef.value = message
   setTimeout(() => errorRef.value = null, 6000)
   return false
-}
-
-const prepareSpecialtiesInput = () => {
-  formDataRef.value.specialties = formDataRef.value.specialtiesString.split(',')
-    .map(s => s.trim())
-    .filter(s => s.length > 0)
 }
 
 const validateFormData = () => {
@@ -129,7 +125,6 @@ const validateFormData = () => {
     }
 
   }
-
   return true // All validations passed
 }
 
@@ -157,7 +152,7 @@ const prepareOpeningHourInput = () => {
 
     if (match24) {
       const [_, hours, minutes] = match24.map(Number)
-      return hours < 24 && minutes < 60 ? `${hours.toString().padStart(2, '0')}:${minutes}` : null
+      return hours < 24 && minutes < 60 ? `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}` : null
     }
 
     if (match12) {
@@ -167,7 +162,7 @@ const prepareOpeningHourInput = () => {
       if (hours <= 12 && minutes < 60) {
         if (period.toUpperCase() === 'PM' && hours !== 12) hours += 12
         if (period.toUpperCase() === 'AM' && hours === 12) hours = 0
-        return `${hours.toString().padStart(2, '0')}:${minutes}`
+        return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`
       }
     }
 
@@ -206,23 +201,19 @@ const prepareOpeningHourInput = () => {
 const onSubmit = async (event) => {
   event.preventDefault()
 
-  prepareSpecialtiesInput()
-
-  // Perform synchronous validation
   if (!validateFormData()) return
 
-
-  // Perform asynchronous validation
   try {
     const isUserExist = await checkUserExistence(formDataRef.value.username, formDataRef.value.email)
 
     if (isUserExist) {
       showError('Username or email already exists.')
-      return // Stop submission if user exists
+      return
     }
 
     // Prepare data and submit the form
     prepareOpeningHourInput()
+    console.log(formDataRef.value.openingHours);
     await performRequest()
     setTimeout(() => {
       successRef.value = `${capitalize(userType.value)} registered successfully! Redirecting to home screen...`
@@ -247,6 +238,18 @@ const goToNextStep = () => {
 
 const goback = () => router.push('/')
 const capitalize = (str) => str.charAt(0).toUpperCase() + str.slice(1)
+
+const selectSpecialties= ref([]);
+
+onMounted(async ()=>{
+  const response = await fetch(`${backendEnvVar}/api/user/specialties`);
+  if(response.ok){
+    const data = await response.json();
+    selectSpecialties.value = data.map(item => item.name);
+  }else {
+    console.error('Error fetching specialties:', response.statusText);
+  }
+});
 </script>
 
 <template>
@@ -317,12 +320,15 @@ const capitalize = (str) => str.charAt(0).toUpperCase() + str.slice(1)
 
           <div v-if="userType.includes('doctor')">
             <label for="specialty">Specialty</label>
-            <input id="specialty" class="form-control" v-model="formDataRef.specialty" type="text" placeholder="Enter specialty" />
+            <multiselect v-model="formDataRef.specialty" :options="selectSpecialties"
+              :searchable="false" :close-on-select="false" :show-labels="false" placeholder="Pick a specialty"></multiselect>
           </div>
 
           <div v-if="userType.includes('diagnostic')">
-            <label for="specialties">Specialties</label>
-            <input id="specialties" class="form-control" v-model="formDataRef.specialtiesString" type="text" placeholder="Enter specialties (comma-separated)" />
+            <label for="specialty" class="form-label">Specialties</label>
+            <multiselect v-model="formDataRef.specialties" :options="selectSpecialties" :multiple="true"
+              :searchable="false" :taggable="true" :close-on-select="false" placeholder="Select specialties">
+            </multiselect>
           </div>
 
           <!-- Schedule Section -->
@@ -355,7 +361,6 @@ const capitalize = (str) => str.charAt(0).toUpperCase() + str.slice(1)
 
 <style scoped>
 
-/* Schedule Section Styling */
 .schedule-container {
   width: 100%;
   max-width: 600px;
