@@ -179,6 +179,7 @@ const userRole = computed(() =>
           Cancel appointment
         </button>
       </div>
+      <Calendar :data="data" :specialty="data.specialty" calendar-type="changeAppointment" v-if="userRole.includes('ROLE_PATIENT')"/>
     </div>
   </div>
 </template>

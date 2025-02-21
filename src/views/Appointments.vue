@@ -224,6 +224,9 @@ const isDoctor = computed(() => userRole.value.includes('ROLE_DOCTOR'));
     <h1 style="text-align: center">No appointments found</h1>
   </div>
 
+  <div v-if="data && data.length" class="calendar-container">
+    <Calendar :appointments="data.map(appointment => ({ date: appointment.date, time: appointment.time, id: appointment.id }))" :specialty="specialtyComputed" calendar-type="appointments" />
+  </div>
   <button @click="goback" class="btn btn-secondary">Back</button>
 </template>
 
