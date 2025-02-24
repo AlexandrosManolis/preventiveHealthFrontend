@@ -64,9 +64,8 @@ const goback = () => router.push('/find_specialist');
         <h4 class="title"><span class="bi bi-person-vcard"></span> User Profile</h4>
         <p><strong>Name:</strong> {{ data.fullName }}</p>
         <p>
-          <strong>Address:</strong> {{ data.doctor?.address || data.diagnosticCenter?.address }},
-          {{ data.doctor?.city || data.diagnosticCenter?.city }},
-          {{ data.doctor?.state || data.diagnosticCenter?.state }}
+          <strong>Address:</strong> {{(specialistAddress = `${data.doctor?.address || data.diagnosticCenter?.address}, ${data.doctor?.city || data.diagnosticCenter?.city}, ${data.doctor?.state || data.diagnosticCenter?.state}`) }}
+          <a :href="`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(specialistAddress)}`" target="_blank" class="bi bi-sign-turn-right" title="Open in Google Maps"></a>
         </p>
         <p><strong>Phone:</strong> {{ data.phoneNumber }}</p>
       </div>
