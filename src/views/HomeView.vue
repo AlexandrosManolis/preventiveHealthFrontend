@@ -143,6 +143,73 @@ onMounted(async () => {
 </template>
 
 <style scoped>
+i {
+  display: block;
+  animation: moveUpDown 2s linear infinite;
+}
+
+@keyframes moveUpDown {
+  0% { transform: translateY(0); }
+  50% { transform: translateY(10px); }
+  100% { transform: translateY(0); }
+}
+
+.line-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: auto;
+  height: auto;
+  opacity: 0;
+  transition: opacity 1s ease-out;
+  position: relative;
+}
+
+.line-container.visible {
+  opacity: 1;
+}
+
+.animated-line {
+  stroke-dasharray: 1200;
+  stroke-dashoffset: 1200;
+  transition: stroke-dashoffset 8s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.line-container.visible .animated-line {
+  stroke-dashoffset: 0;
+}
+
+.overlay {
+  width: 100%;
+  height: 100vh;
+  background-size: cover;
+  display: flex;
+  align-items: center;
+  flex-direction: column;
+  z-index: -1;
+}
+
+.overlay h1, h5{
+  margin-top: 30px;
+  z-index: 1;
+  opacity: 0;
+  animation: fadeIn 1s ease-out 0.5s forwards;
+}
+
+@keyframes fadeIn {
+  to {
+    opacity: 1;
+  }
+}
+
+.overlay img {
+  width: auto;
+  height: auto;
+  object-fit: cover;
+  top: 0;
+  z-index: -1;
+  mask-image: linear-gradient(to bottom, rgba(0, 0, 0, 1), rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0));
+}
 
 .main-container {
   align-content: center;
@@ -152,62 +219,62 @@ onMounted(async () => {
   width: 100%;
   display: flex;
   flex-direction: column;
-  min-height: 80vh;
+  min-height: 100vh;
   min-width: 100vh;
   box-sizing: border-box;
-}
-
-/* Image Styling */
-.image-container {
   position: relative;
-  top: 0;
-  left: 0;
-  width: 100%;
-  display: flex;
-  align-items: center;
-  text-align: center;
-  padding-top: 60px;
-  margin-bottom: 20px;
-  overflow: hidden;
-}
-.aligned-image {
-  width: 100%;
-  height: auto;
-  display: block;
+  z-index: 1;
 }
 
 /* Cards Container Styling */
 .cards-container {
   display: flex;
+  flex: 1 1 70%;
   gap: 20px;
   flex-direction: row;
   justify-content: center;
   align-items: center;
   padding-top: 20px;
   flex-wrap: nowrap;
-  flex-grow: 1;
+  flex-grow: 0;
+}
+
+@keyframes appear {
+  0% {
+    opacity: 0;
+    clip-path: inset(0 100% 0 0);
+  }
+  50% {
+    opacity: 0.5;
+    clip-path: inset(0 50% 0 0);
+  }
+  100% {
+    opacity: 1;
+    clip-path: inset(0 0 0 0);
+  }
 }
 
 .card {
-  flex: 1 1 300px; /* Allows cards to grow and shrink */
-  max-width: 300px; /* Set max width */
+  flex: 0 1 300px;
+  max-width: 300px;
   background-color: #fff;
   border-radius: 8px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
   padding: 20px;
   text-align: center;
-  transition: transform 0.3s ease;
+  flex-shrink: 0;
+  opacity: 0;
+  transition: opacity 1s ease-out;
 }
+
+.card.visible {
+  animation: appear 4s ease-out forwards;
+  opacity: 1;
+}
+
 
 .card-content h3 {
   margin-top: 0;
-}
-
-.faded-image {
-  width: 100%;
-  max-height: 400px;
-  object-fit: cover;
-  mask-image: linear-gradient(to bottom, rgba(0, 0, 0, 1), rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0));
 }
 
 .card:hover {
@@ -241,6 +308,25 @@ onMounted(async () => {
 }
 
 @media (max-width: 768px) {
+  .scroll{
+    display: none;
+  }
+
+  .overlay{
+    max-width: 100%;
+    max-height: 100%;
+  }
+
+  .cards-container {
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+  }
+
+  .line-container {
+    display: none;
+  }
+
   .main-container{
     min-width: 0;
   }
