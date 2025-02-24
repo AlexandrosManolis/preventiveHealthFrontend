@@ -1,5 +1,5 @@
 <script setup>
-import {ref, computed, onMounted} from 'vue'
+import {ref, computed, onMounted, onUnmounted} from 'vue'
 import { useApplicationStore } from '@/stores/application.js'
 import { useRemoteData } from '@/composables/useRemoteData.js'
 
@@ -38,27 +38,69 @@ const checkRequestExistence = async (username, status) => {
   }
 }
 
+const lines = ref([]);
+
 onMounted(async () => {
   if(applicationStore.isAuthenticated && (userRole.value.includes("ROLE_DOCTOR") || userRole.value.includes("ROLE_DIAGNOSTIC"))){
     pendingUserRequest.value = await checkRequestExistence(username.value, 'pending')
     rejectedUserRequest.value = await checkRequestExistence(username.value, 'rejected')
   }
-})
 
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach((entry) => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add("visible"); // Add class to each line
+      }
+    });
+  }, { threshold: 0.5 });
+
+  lines.value = document.querySelectorAll(".line-container");
+  lines.value.forEach(line => observer.observe(line));
+
+  const cards = document.querySelectorAll('.card');
+  cards.forEach(card => observer.observe(card));
+
+  // Cleanup observer when component unmounts
+  onUnmounted(() => observer.disconnect());
+})
 
 </script>
 
 <template>
-  <div>
+  <div style="display:flex; flex-direction: column">
+    <div class="overlay" style="text-align: center">
+      <img src="../assets/home-image.webp" alt="Preventive Health App Design"/>
+      <h1 style="font-size: xxx-large; width: 100%">Welcome to Preventive Health</h1>
+      <h5>Your preventive health care is the most important success for us</h5>
+      <span style="margin-top: 15px"></span>
+      <div class="scroll">
+        <h5>Scroll Down</h5>
+        <h1><i class="bi bi-chevron-double-down bg"></i></h1>
+      </div>
+    </div>
     <!-- Main Container -->
     <div class="main-container">
 
-      <div class="image-container">
-        <img src="@/assets/preventivehealth.webp" alt="Preventive Health App Design" class="aligned-image faded-image" />
-      </div>
-
         <!-- Cards Container -->
-        <div class="cards-container row">
+        <div class="cards-container row" style="display: flex; align-items: center;">
+
+          <!-- Animated Line -->
+          <div ref="lineContainer" class="line-container">
+            <svg width="60%" height="60%" viewBox="0 0 200 600">
+              <defs>
+                <linearGradient id="gradient1" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" style="stop-color: whitesmoke; stop-opacity: 1" />
+                  <stop offset="45%" style="stop-color: #335c81; stop-opacity: 1" />
+                </linearGradient>
+              </defs>
+              <path d="M100,0 V500 C100,550 200,550 200,500"
+                    stroke="url(#gradient1)" fill="transparent"
+                    stroke-width="5" class="animated-line"></path>
+              <circle cx="100" cy="0" r="5" fill="blue"></circle>
+              <circle cx="200" cy="500" r="5" fill="blue"></circle>
+            </svg>
+
+          </div>
           <RouterLink :to="{name : 'userProfile', params: {id: applicationStore.userData.id}}" class="card btn fw-bolder btn-dark"
           v-if="applicationStore.isAuthenticated">
               <div class="card-content">
@@ -88,7 +130,6 @@ onMounted(async () => {
             </div>
           </RouterLink>
         </div>
-
       <div class="header" v-if="userRole.includes('ROLE_DOCTOR') || userRole.includes('ROLE_DIAGNOSTIC')">
         <div v-if="pendingUserRequest.exists">
           <h1>Your request is still in Pending status! Please come back later.</h1>
