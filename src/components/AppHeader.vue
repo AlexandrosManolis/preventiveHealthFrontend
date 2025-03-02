@@ -67,7 +67,8 @@ onBeforeUnmount(() => {
                 Appointments
               </button>
               <ul class="dropdown-menu">
-                <RouterLink :to="{name : 'appointments', params: {id: applicationStore.userData.id}}" class="btn login-button appointment-item">Appointments</RouterLink>
+                <RouterLink :to="{name : 'appointments', params: {id: applicationStore.userData.id}, query: {status: 'completed'}}" class="btn login-button appointment-item">Medical Record</RouterLink>
+                <RouterLink :to="{name : 'appointments', params: {id: applicationStore.userData.id}, query: {status: 'uncompleted'}}" class="btn login-button appointment-item">Uncompleted Appointments</RouterLink>
                 <RouterLink :to="{name : 'appointmentRequests', params: {id: applicationStore.userData.id}}" class="btn login-button appointment-item" v-if="(roles.includes('ROLE_DOCTOR') || roles.includes('ROLE_DIAGNOSTIC'))">
                   Appointment Requests
                 </RouterLink>
@@ -85,6 +86,7 @@ onBeforeUnmount(() => {
                 <li class="dropdown-item disabled text-dark">{{ username }}</li>
                 <li class="dropdown-item disabled text-dark" v-for="role in roles" :key="role">{{ role }}</li>
                 <RouterLink :to="{name : 'userProfile', params: {id: applicationStore.userData.id}}" class="btn login-button profile" v-if="applicationStore.isAuthenticated">Profile</RouterLink>
+                <RouterLink :to="{name : 'specialistStats',params: {id: applicationStore.userData.id}}" class="btn login-button profile" style="margin-top: 5px">Stats</RouterLink>
 
                 <li class="dropdown-divider"></li>
                 <RouterLink :to="{ name: 'logout' }" class="nav-link text-dark">Logout</RouterLink>

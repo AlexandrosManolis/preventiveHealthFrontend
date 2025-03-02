@@ -138,7 +138,7 @@ const goBack = ()=> router.push('/');
   </div>
 
   <div v-else>
-    <h1 style="text-align: center;">No Pending Requests Found.</h1>
+    <h1 style="text-align: center; margin-top: 60px">No Pending Requests Found.</h1>
     <button class="btn btn-secondary" @click="goBack">Back</button>
   </div>
 </template>

@@ -12,18 +12,36 @@ const applicationStore = useApplicationStore()
 const route = useRoute()
 const router = useRouter()
 const userIdRef = ref(route.params.id)
+const appointmentStatus = ref(route.query.status)
+
+const urlRef = ref(null)
+const authRef = ref(true)
 
 const userRole = computed(() =>
   applicationStore.isAuthenticated ? applicationStore.userData.roles : []
 )
 
-const urlRef = ref(`${backendEnvVar}/api/appointment/${userIdRef.value}/appointments`)
-const authRef = ref(true)
+
+const defineUrl = () => {
+  if (appointmentStatus.value === "completed") {
+    urlRef.value = `${backendEnvVar}/api/appointment/${userIdRef.value}/medicalRecord`
+  } else if (appointmentStatus.value === "uncompleted") {
+    urlRef.value = `${backendEnvVar}/api/appointment/${userIdRef.value}/uncompletedAppointments`
+  }
+}
 
 const { performRequest, data } = useRemoteData(urlRef, authRef)
 
+watch(() => route.query.status, (newStatus) => {
+  appointmentStatus.value = newStatus
+})
+
 onMounted(() => {
-  performRequest();
+  defineUrl()
+  if (urlRef.value === null) {
+    return
+  }
+  performRequest()
 })
 
 const destroy = (appointmentId) => {
@@ -218,7 +236,6 @@ const isDoctor = computed(() => userRole.value.includes('ROLE_DOCTOR'));
         </div>
       </template>
     </div>
-
   </div>
   <div v-else>
     <h1 style="text-align: center">No appointments found</h1>

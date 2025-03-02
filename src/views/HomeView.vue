@@ -115,11 +115,18 @@ onMounted(async () => {
               <p>Search for healthcare specialists in your area.</p>
             </div>
           </RouterLink>
-          <RouterLink :to="{name : 'appointments', params: {id: applicationStore.userData.id}}" class="card btn fw-bolder btn-dark"
+          <RouterLink :to="{name : 'appointments', params: {id: applicationStore.userData.id}, query: {status: 'completed'}}" class="card btn fw-bolder btn-dark"
           v-if="applicationStore.isAuthenticated && !pendingUserRequest.exists && !rejectedUserRequest.exists">
             <div class="card-content">
-              <h2>Appointments</h2>
-              <p>Check your appointments.</p>
+              <h2>Medical Record</h2>
+              <p>Check your completed appointments.</p>
+            </div>
+          </RouterLink>
+          <RouterLink :to="{name : 'appointments', params: {id: applicationStore.userData.id}, query: {status: 'uncompleted'}}" class="card btn fw-bolder btn-dark"
+                      v-if="applicationStore.isAuthenticated && !pendingUserRequest.exists && !rejectedUserRequest.exists">
+            <div class="card-content">
+              <h2>Uncompleted Appointments</h2>
+              <p>Check your pending or cancelled appointments.</p>
             </div>
           </RouterLink>
           <RouterLink :to="{name : 'appointmentRequests', params: {id: applicationStore.userData.id}}" class="card btn fw-bolder btn-dark"
