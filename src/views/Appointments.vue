@@ -34,6 +34,10 @@ const { performRequest, data } = useRemoteData(urlRef, authRef)
 
 watch(() => route.query.status, (newStatus) => {
   appointmentStatus.value = newStatus
+  defineUrl()
+  if (urlRef.value) {
+    performRequest()
+  }
 })
 
 onMounted(() => {
