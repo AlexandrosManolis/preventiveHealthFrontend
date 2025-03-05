@@ -4,147 +4,197 @@ import { useRouter, useRoute } from 'vue-router'
 import { useRemoteData } from '@/composables/useRemoteData.js'
 
 const backendEnvVar = import.meta.env.VITE_BACKEND;
-
 const route = useRoute();
 const router = useRouter();
 
-const formDataRef = ref({ 'specialty': '' });
-const results = ref([]); // Store search results
-const dropdownVisible = ref(false); // Track dropdown visibility
+const formDataRef = ref({ specialty: '', city: '' });
+const results = ref([]);
+const dropdownVisible = ref({ specialty: false, city: false });
 const submitTriggered = ref(false);
+const activeField = ref(null);
+const specialtiesList = ref([]);
+const citiesList = ref([]);
+const searchPerformed = ref(false);
 
 const urlRef = ref(`${backendEnvVar}/api/user/find_specialist`);
 const authRef = ref(false);
 const methodRef = ref('GET');
-const searchPerformed = ref(false);
 
 const { performRequest, data } = useRemoteData(urlRef, authRef, methodRef);
 
 onMounted(() => {
-  const initialSpecialty = route.query.specialty || '';
-  formDataRef.value.specialty = initialSpecialty;
-  fetchSpecialists(initialSpecialty);
-  if (initialSpecialty) {
-    submitTriggered.value = true;
-  } else {
-    performRequest();
+  // Initialize from URL parameters
+  formDataRef.value.specialty = route.query.specialty || '';
+  formDataRef.value.city = route.query.city || '';
+
+  loadDropdownOptions();
+
+  // Perform search if URL has parameters
+  if (formDataRef.value.specialty || formDataRef.value.city) {
+    fetchSpecialists(formDataRef.value.specialty, formDataRef.value.city);
+    searchPerformed.value = true;
   }
 });
 
-const fetchSpecialists = async (specialty) => {
-  if (specialty) {
-    urlRef.value = `${backendEnvVar}/api/user/find_specialist?specialty=${specialty}`;
-    await performRequest();
-    results.value = data.value;
+const loadDropdownOptions = async () => {
+  urlRef.value = `${backendEnvVar}/api/user/find_specialist`;
+  await performRequest();
 
-    // Fetch available specialties for the dropdown
-    await performRequest();
+  if (data.value?.allSpecialties) {
+    specialtiesList.value = data.value.allSpecialties;
+    citiesList.value = data.value.allcities;
   }
 };
 
-watch(
-  () => formDataRef.value.specialty,
-  async (newSpecialty) => {
-    if (newSpecialty && !submitTriggered.value) {
-      dropdownVisible.value = true;
+const fetchSpecialists = async (specialty, city) => {
+  // Always include parameters
+  urlRef.value = `${backendEnvVar}/api/user/find_specialist?specialty=${specialty || 'all'}&city=${city || 'all'}`;
+  await performRequest();
 
-      // Fetch available specialties dynamically
-      urlRef.value = `${backendEnvVar}/api/user/find_specialist`;
-      await performRequest();
-    }
+  // Simplified result processing
+  results.value = Array.isArray(data.value) ? data.value :
+    (data.value?.specialists && Array.isArray(data.value.specialists)) ?
+      data.value.specialists : [];
+};
+
+// Watch input fields to show/hide dropdowns
+watch(() => formDataRef.value.specialty, (newValue) => {
+  if (newValue && !submitTriggered.value) {
+    activeField.value = 'specialty';
+    dropdownVisible.value = { specialty: true, city: false };
   }
-);
+});
 
-watch(
-  () => submitTriggered.value,
-  async (newSubmitTriggered) => {
-    if (newSubmitTriggered) {
-      const specialty = formDataRef.value.specialty || 'all';
-      urlRef.value = `${backendEnvVar}/api/user/find_specialist?specialty=${specialty}`;
-      await router.push({ name: 'findSpecialist', query: { specialty } });
+watch(() => formDataRef.value.city, (newValue) => {
+  if (newValue && !submitTriggered.value) {
+    activeField.value = 'city';
+    dropdownVisible.value = { specialty: false, city: true };
+  }
+});
 
-      const fetchedData = await performRequest();
-      if (fetchedData) {
-        results.value = fetchedData;
-      } else {
-        console.error('Error fetching updated data:', error.value);
+// Handle form submission
+watch(() => submitTriggered.value, async (newValue) => {
+  if (newValue) {
+    const specialty = formDataRef.value.specialty || 'all';
+    const city = formDataRef.value.city || 'all';
+
+    // Update URL parameters
+    await router.push({
+      name: 'findSpecialist',
+      query: {
+        specialty: specialty !== 'all' ? specialty : undefined,
+        city: city !== 'all' ? city : undefined
       }
+    });
 
-      searchPerformed.value = true;
-      formDataRef.value.specialty = '';
-      dropdownVisible.value = false;
-      submitTriggered.value = false;
-    }
+    // Perform search
+    await fetchSpecialists(specialty, city);
+
+    searchPerformed.value = true;
+    dropdownVisible.value = { specialty: false, city: false };
+    submitTriggered.value = false;
   }
-);
-
-// Filtered options for dropdown
-const filteredOptions = computed(() => {
-  const filter = formDataRef.value.specialty.toUpperCase();
-  return data.value.filter((option) => {
-    if (typeof option === 'string') {
-      return option.toUpperCase().includes(filter);
-    } else if (option && typeof option.name === 'string') {
-      return option.name.toUpperCase().includes(filter);
-    }
-    return false;
-  });
 });
 
-// Dropdown visibility and selection logic
-const toggleDropdown = () => {
-  dropdownVisible.value = !dropdownVisible.value;
+// Filtered options for dropdowns
+const filteredSpecialties = computed(() => {
+  if (!formDataRef.value.specialty) return specialtiesList.value;
+
+  const filter = formDataRef.value.specialty.toUpperCase();
+  return specialtiesList.value.filter(specialty =>
+    specialty.toString().toUpperCase().includes(filter)
+  );
+});
+
+const filteredCities = computed(() => {
+  if (!formDataRef.value.city) return citiesList.value;
+
+  const filter = formDataRef.value.city.toUpperCase();
+  return citiesList.value.filter(city =>
+    city.toString().toUpperCase().includes(filter)
+  );
+});
+
+// Dropdown control functions
+const toggleDropdown = (field) => {
+  activeField.value = field;
+  dropdownVisible.value = {
+    specialty: field === 'specialty' ? !dropdownVisible.value.specialty : false,
+    city: field === 'city' ? !dropdownVisible.value.city : false
+  };
 };
 
-const filterFunction = () => {
-  dropdownVisible.value = true;
+const filterFunction = (field) => {
+  activeField.value = field;
+  dropdownVisible.value = {
+    specialty: field === 'specialty',
+    city: field === 'city'
+  };
 };
 
-const selectOption = (option) => {
-  formDataRef.value.specialty = option;
-  dropdownVisible.value = false; // Hide the dropdown after selection
+const selectOption = (option, field) => {
+  formDataRef.value[field] = option;
+  dropdownVisible.value[field] = false;
 };
 
-const onsubmit = async (event) => {
+const onsubmit = (event) => {
   event.preventDefault();
-  if (!formDataRef.value.specialty) {
-    formDataRef.value.specialty = 'all';
-  }
+
+  // Simplify assigning default values
+  formDataRef.value.specialty = formDataRef.value.specialty || 'all';
+  formDataRef.value.city = formDataRef.value.city || 'all';
+
   submitTriggered.value = true;
 };
 
 const goback = () => router.push('/');
 
 const navigateToFindSpecialist = async () => {
-
-  formDataRef.value.specialty = '';
+  // Reset all state
+  formDataRef.value = { specialty: '', city: '' };
   results.value = [];
-  dropdownVisible.value = false;
+  dropdownVisible.value = { specialty: false, city: false };
   searchPerformed.value = false;
+  activeField.value = null;
 
   await router.push({ name: 'findSpecialist' });
-  performRequest();
+  loadDropdownOptions();
 };
 </script>
 
 <template>
   <div class="content-container" v-if="data">
-    <h1 class="text-center" @click="navigateToFindSpecialist">Find Your Doctor Now</h1>
+    <h1 class="title" @click="navigateToFindSpecialist">Find Your Doctor Now</h1>
+
     <div class="input-group">
-      <input v-model="formDataRef.specialty" @click="toggleDropdown" @keyup="filterFunction" type="text" placeholder="Search specialty" id="myInput" class="search-input" />
+      <input v-model="formDataRef.specialty" @click="toggleDropdown('specialty')" @keyup="filterFunction('specialty')" type="text" placeholder="Search specialty" class="search-input" />
+
+      <input v-model="formDataRef.city" @click="toggleDropdown('city')" @keyup="filterFunction('city')" type="text" placeholder="Search city" class="search-input" />
+
       <button @click="onsubmit" class="btn btn-primary">🔍</button>
-      <button @click="goback" class="btn btn-secondary">Back</button>
     </div>
 
-    <div class="dropdown" v-if="dropdownVisible && filteredOptions.length">
-      <div v-for="option in filteredOptions" :key="option" class="dropdown-item" @click.prevent="selectOption(option)">
+    <!-- Specialty dropdown -->
+    <div class="dropdown" v-if="dropdownVisible.specialty && filteredSpecialties.length">
+      <div v-for="option in filteredSpecialties" :key="option" class="dropdown-item" @click="selectOption(option, 'specialty')">
         {{ option }}
       </div>
     </div>
 
-    <div v-if="results.length" class="user-table-container">
-      <h3>Searching for: {{route.query.specialty}}</h3>
-      <table class="modern-table">
+    <!-- City dropdown -->
+    <div class="dropdown" v-if="dropdownVisible.city && filteredCities.length">
+      <div v-for="option in filteredCities" :key="option" class="dropdown-item" @click="selectOption(option, 'city')">
+        {{ option }}
+      </div>
+    </div>
+
+    <button @click="goback" class="btn btn-secondary back-btn">Back</button>
+
+    <!-- Results section -->
+    <div v-if="results.length" class="results-container">
+      <h3 class="search-heading">Searching for: {{ route.query.specialty }}</h3>
+
+      <table class="results-table">
         <thead>
         <tr>
           <th>Full Name</th>
@@ -169,140 +219,214 @@ const navigateToFindSpecialist = async () => {
             <template v-else>N/A</template>
           </td>
           <td>
-            {{ result.doctor?.address || result.diagnosticCenter?.address || 'N/A' }}, {{ result.doctor?.city || result.diagnosticCenter?.city || 'N/A' }},
+            {{ result.doctor?.address || result.diagnosticCenter?.address || 'N/A' }},
+            {{ result.doctor?.city || result.diagnosticCenter?.city || 'N/A' }},
             {{ result.doctor?.state || result.diagnosticCenter?.state || 'N/A' }}
           </td>
-          <td v-if="result.roles.some(role => role.roleName === 'ROLE_DOCTOR')">Doctor</td>
-          <td v-if="result.roles.some(role => role.roleName === 'ROLE_DIAGNOSTIC')">Diagnostic Center</td>
-          <td >
-            <RouterLink :to="{name:'specialistDetails', params: {id:result.id}, query: {specialty: route.query.specialty}}" class="btn btn-primary bi bi-info-circle"> View Details</RouterLink>
+          <td>
+            {{ result.roles.some(role => role.roleName === 'ROLE_DOCTOR') ? 'Doctor' :
+            result.roles.some(role => role.roleName === 'ROLE_DIAGNOSTIC') ? 'Diagnostic Center' : 'N/A' }}
+          </td>
+          <td>
+            <RouterLink :to="{name: 'specialistDetails', params: { id: result.id }, query: { specialty: route.query.specialty }}" class="details-btn">
+              View Details
+            </RouterLink>
           </td>
         </tr>
         </tbody>
       </table>
     </div>
-    <div v-if="searchPerformed && results.length === 0">
+
+    <div v-if="searchPerformed && results.length === 0" class="no-results">
       <p>No results found.</p>
     </div>
   </div>
 </template>
 
-
 <style scoped>
-.user-table-container {
-  margin: 20px;
-  overflow-x: auto;
-  border-radius: 8px;
-  background-color: #f9f9f9;
-  padding: 15px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  min-width: 80vh;
-  width: 100%;
-  max-width: 600px;
-  box-sizing: border-box;
-}
-
-.modern-table {
-  width: 100%;
-  border-collapse: collapse;
-  font-family: Arial, sans-serif;
-  font-size: 14px;
-}
-
-.modern-table th {
-  background-color: #335c81;
-  color: white;
-  text-align: center;
-  padding: 10px;
-}
-
-.modern-table td {
-  padding: 10px;
-  text-align: center;
-  border-bottom: 1px solid #ddd;
-}
-
-.modern-table tr:hover {
-  background-color: #f1f1f1;
-}
-
-/* Content Container Styling */
 .content-container {
   display: flex;
   flex-direction: column;
   align-items: center;
-  min-width: 80vh;
   width: 100%;
-  max-width: 600px;
-  margin: 0 auto;
-  margin-top: 20%;
+  max-width: 800px;
+  margin: 2rem auto;
+  padding: 1.5rem;
   box-sizing: border-box;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
 }
 
-/* Input Group Styling */
+.title {
+  margin-bottom: 2rem;
+  color: #1a365d;
+  cursor: pointer;
+  font-weight: 700;
+  text-align: center;
+}
+
 .input-group {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 0.75rem;
   width: 100%;
+  margin-bottom: 0.5rem;
 }
 
 .search-input {
   flex: 1;
-  padding: 10px;
-  font-size: 16px;
-  border: 1px solid #ccc;
-  border-radius: 5px;
+  padding: 0.75rem 1rem;
+  font-size: 1rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.5rem;
+  background-color: #f8fafc;
+  transition: all 0.2s ease;
   outline: none;
 }
 
-.btn-primary,
-.btn-secondary {
-  padding: 0.75rem;
-  font-size: inherit;
+.search-input:focus {
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+}
+
+.btn {
+  padding: 0.75rem 1rem;
+  font-size: 1rem;
   border: none;
-  border-radius: 5px;
+  border-radius: 0.5rem;
   cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-secondary {
+  background-color: #64748b;
+  color: white;
+}
+
+.btn-secondary:hover {
+  background-color: #475569;
+}
+
+.back-btn {
+  margin-top: 1rem;
+  width: 100%;
+  max-width: 200px;
 }
 
 .dropdown {
   width: 100%;
-  margin-top: 10px;
-  border: 1px solid #ddd;
-  background-color: #fff;
-  border-radius: 5px;
+  max-height: 300px;
+  overflow-y: auto;
+  margin-top: 0.5rem;
+  border: 1px solid #e2e8f0;
+  background-color: transparent;
+  border-radius: 0.5rem;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  z-index: 10;
 }
 
 .dropdown-item {
-  padding: 10px;
-  font-size: 14px;
+  padding: 0.75rem 1rem;
+  font-size: 0.875rem;
   cursor: pointer;
-  color: #333;
+  color: #1e293b;
+  transition: background-color 0.15s ease;
 }
 
 .dropdown-item:hover {
-  background-color: #f1f1f1;
+  background-color: #f1f5f9;
+}
+
+.results-container {
+  width: 100%;
+  margin-top: 2rem;
+  border-radius: 0.75rem;
+  background-color: transparent;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+  overflow: hidden;
+}
+
+.search-heading {
+  padding: 1rem;
+  margin: 0;
+  background-color: transparent;
+  font-weight: 600;
+  color: #334155;
+}
+
+.results-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.875rem;
+}
+
+.results-table th {
+  background-color: #1e40af;
+  color: white;
+  text-align: left;
+  padding: 1rem;
+  font-weight: 600;
+}
+
+.results-table td {
+  padding: 1rem;
+  border-bottom: 1px solid #e2e8f0;
+  color: #334155;
+}
+
+.results-table tr:hover {
+  background-color: #f8fafc;
+}
+
+.details-btn {
+  display: inline-block;
+  padding: 0.5rem 0.75rem;
+  background-color: #3b82f6;
+  color: white;
+  border-radius: 0.375rem;
+  text-decoration: none;
+  font-size: 0.75rem;
+  font-weight: 500;
+  transition: background-color 0.2s ease;
+}
+
+.details-btn:hover {
+  background-color: #2563eb;
+}
+
+.no-results {
+  width: 100%;
+  padding: 2rem;
+  text-align: center;
+  color: #64748b;
+  background-color: transparent;
+  border-radius: 0.5rem;
+  margin-top: 2rem;
 }
 
 @media (max-width: 768px) {
-  .user-table-container{
-    min-width: auto;
-  }
-
   .content-container {
-    min-width: auto;
-  }
-
-  .search-input {
-    width: 100%;
-    font-size: 14px;
+    padding: 1rem;
   }
 
   .input-group {
     flex-direction: column;
     align-items: stretch;
-    gap: 10px;
+  }
+
+  .search-input {
+    width: 100%;
+    font-size: 0.875rem;
+  }
+
+  .results-table th,
+  .results-table td {
+    padding: 0.75rem 0.5rem;
+    font-size: 0.75rem;
+  }
+
+  .back-btn {
+    width: 100%;
+    max-width: none;
   }
 }
 </style>
