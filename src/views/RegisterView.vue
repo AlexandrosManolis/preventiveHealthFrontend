@@ -1,7 +1,9 @@
 <script setup xmlns="http://www.w3.org/1999/html">
-import { ref, computed, watch } from 'vue'
+import { ref, computed, watch, onMounted } from 'vue'
 import { useRemoteData } from '@/composables/useRemoteData.js'
 import { useRoute, useRouter } from 'vue-router'
+import Multiselect from 'vue-multiselect'
+import "vue-multiselect/dist/vue-multiselect.min.css";
 
 const backendEnvVar = import.meta.env.VITE_BACKEND
 const route = useRoute()
@@ -10,8 +12,8 @@ const router = useRouter()
 const formDataRef = ref({
   'username': '', 'password': '', 'email': '', 'fullName': '', 'phoneNumber': '',
   'gender': '', 'birthday': '', 'amka': '',
-  'address': '', 'city': '', 'state': '', 'specialty': '', 'doy': '', 'afm': '', 'schedules': [],
-  'specialties': [], 'specialtiesString': ''
+  'address': '', 'city': '', 'state': '', 'specialty': '', 'doy': '', 'afm': '', 'openingHours': [],
+  'specialties': []
 })
 
 
@@ -25,7 +27,7 @@ const methodRef = ref('POST')
 
 const { performRequest } = useRemoteData(urlRef, authRef, methodRef, formDataRef)
 
-const currentStep = ref(1) // Track the current step of the form
+const currentStep = ref(1)
 
 watch(userType, () => {
   currentStep.value = 1
@@ -38,16 +40,10 @@ const showError = (message) => {
   return false
 }
 
-const prepareSpecialtiesInput = () => {
-  formDataRef.value.specialties = formDataRef.value.specialtiesString.split(',')
-    .map(s => s.trim())
-    .filter(s => s.length > 0)
-}
-
 const validateFormData = () => {
   const {
     username, password, email, fullName, phoneNumber, gender, birthday, amka,
-    address, city, state, specialty, doy, afm, schedules, specialties
+    address, city, state, specialty, doy, afm, openingHours, specialties
   } = formDataRef.value
 
   // Common Validations
@@ -129,7 +125,6 @@ const validateFormData = () => {
     }
 
   }
-
   return true // All validations passed
 }
 
@@ -149,7 +144,7 @@ const checkUserExistence = async (username, email) => {
   }
 }
 
-const prepareScheduleInput = () => {
+const prepareOpeningHourInput = () => {
   const formatTime = (time) => {
     if (!time) return null
     const match24 = time.match(/^(\d{1,2}):(\d{2})$/)
@@ -157,7 +152,7 @@ const prepareScheduleInput = () => {
 
     if (match24) {
       const [_, hours, minutes] = match24.map(Number)
-      return hours < 24 && minutes < 60 ? `${hours.toString().padStart(2, '0')}:${minutes}` : null
+      return hours < 24 && minutes < 60 ? `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}` : null
     }
 
     if (match12) {
@@ -167,14 +162,14 @@ const prepareScheduleInput = () => {
       if (hours <= 12 && minutes < 60) {
         if (period.toUpperCase() === 'PM' && hours !== 12) hours += 12
         if (period.toUpperCase() === 'AM' && hours === 12) hours = 0
-        return `${hours.toString().padStart(2, '0')}:${minutes}`
+        return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`
       }
     }
 
     return null
   }
 
-  formDataRef.value.schedules = ['MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY']
+  formDataRef.value.openingHours = ['MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY']
     .map((day, index) => {
       const startTime = formatTime(formDataRef.value[`startTime${index}`])
       const endTime = formatTime(formDataRef.value[`endTime${index}`])
@@ -206,22 +201,19 @@ const prepareScheduleInput = () => {
 const onSubmit = async (event) => {
   event.preventDefault()
 
-  prepareSpecialtiesInput()
-
-  // Step 1: Perform synchronous validation
   if (!validateFormData()) return
 
-
-  // Step 2: Perform asynchronous validation
   try {
     const isUserExist = await checkUserExistence(formDataRef.value.username, formDataRef.value.email)
 
     if (isUserExist) {
       showError('Username or email already exists.')
-      return // Stop submission if user exists
+      return
     }
-    // Step 3: Prepare data and submit the form
-    prepareScheduleInput()
+
+    // Prepare data and submit the form
+    prepareOpeningHourInput()
+    console.log(formDataRef.value.openingHours);
     await performRequest()
     setTimeout(() => {
       successRef.value = `${capitalize(userType.value)} registered successfully! Redirecting to home screen...`
@@ -246,6 +238,18 @@ const goToNextStep = () => {
 
 const goback = () => router.push('/')
 const capitalize = (str) => str.charAt(0).toUpperCase() + str.slice(1)
+
+const selectSpecialties= ref([]);
+
+onMounted(async ()=>{
+  const response = await fetch(`${backendEnvVar}/api/user/specialties`);
+  if(response.ok){
+    const data = await response.json();
+    selectSpecialties.value = data.map(item => item.name);
+  }else {
+    console.error('Error fetching specialties:', response.statusText);
+  }
+});
 </script>
 
 <template>
@@ -316,17 +320,20 @@ const capitalize = (str) => str.charAt(0).toUpperCase() + str.slice(1)
 
           <div v-if="userType.includes('doctor')">
             <label for="specialty">Specialty</label>
-            <input id="specialty" class="form-control" v-model="formDataRef.specialty" type="text" placeholder="Enter specialty" />
+            <multiselect v-model="formDataRef.specialty" :options="selectSpecialties"
+              :searchable="false" :close-on-select="false" :show-labels="false" placeholder="Pick a specialty"></multiselect>
           </div>
 
           <div v-if="userType.includes('diagnostic')">
-            <label for="specialties">Specialties</label>
-            <input id="specialties" class="form-control" v-model="formDataRef.specialtiesString" type="text" placeholder="Enter specialties (comma-separated)" />
+            <label for="specialty" class="form-label">Specialties</label>
+            <multiselect v-model="formDataRef.specialties" :options="selectSpecialties" :multiple="true"
+              :searchable="false" :taggable="true" :close-on-select="false" placeholder="Select specialties">
+            </multiselect>
           </div>
 
           <!-- Schedule Section -->
           <div class="schedule-container">
-            <h3 class="schedule-title">Weekly Schedule</h3>
+            <h3 class="schedule-title">Weekly Opening Hours</h3>
             <div v-for="(day, index) in ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday']" :key="index" class="schedule-row">
               <label class="schedule-day">{{ day }}</label>
               <div class="time-fields">
@@ -354,7 +361,6 @@ const capitalize = (str) => str.charAt(0).toUpperCase() + str.slice(1)
 
 <style scoped>
 
-/* Schedule Section Styling */
 .schedule-container {
   width: 100%;
   max-width: 600px;
@@ -531,17 +537,6 @@ const capitalize = (str) => str.charAt(0).toUpperCase() + str.slice(1)
   transition: background-color 0.5s;
 }
 
-.btn-primary {
-  width: 200px;
-  background:  linear-gradient(315deg, whitesmoke 0%, #335c81 45%);
-  color: white;
-  border: none;
-}
-
-.btn-primary:hover {
-  background: linear-gradient(315deg, #007bff 0%,  #182b3a 80%);
-}
-
 .btn-secondary {
   background: #95a5a6;
   color: white;
@@ -605,12 +600,6 @@ const capitalize = (str) => str.charAt(0).toUpperCase() + str.slice(1)
 
   .schedule-container {
     padding: 10px; /* Reduce padding for smaller screens */
-  }
-
-  .container {
-    margin-top: 85px;
-    flex-direction: column; /* Stack h1 and form vertically */
-    gap: 15px; /* Adjust gap for smaller screens */
   }
 
   .container h1 {

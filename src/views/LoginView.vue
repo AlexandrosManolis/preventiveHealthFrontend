@@ -195,21 +195,6 @@ onBeforeMount(() => {
   transition: border-color 0.3s;
 }
 
-/* Style the submit button */
-.login-form button {
-  padding: 0.75rem;
-  font-size: inherit;
-  background:  linear-gradient(315deg, whitesmoke 0%, #335c81 45%);
-  border-radius: 4px;
-  cursor: pointer;
-  transition: background-color 0.3s, transform 0.2s;
-}
-
-.login-form button:hover {
-  background: linear-gradient(315deg, #007bff 0%,  #182b3a 80%);
-  transform: scale(1.05);
-}
-
 .form-group label {
   font-weight: 600;
   color: #34495e;
@@ -229,22 +214,6 @@ onBeforeMount(() => {
 .form-group input:focus {
   border-color: #3498db;
   outline: none;
-}
-
-.btn-primary {
-  width: 100%;
-  background: #3498db;
-  color: white;
-  border: none;
-  padding: 12px 20px;
-  font-size: 1rem;
-  border-radius: 8px;
-  cursor: pointer;
-  transition: background-color 0.3s;
-}
-
-.btn-primary:hover {
-  background: #2980b9;
 }
 
 @media (max-width: 768px) {
