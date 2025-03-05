@@ -88,6 +88,12 @@ const router = createRouter({
       component: () => import('../views/AppointmentRequests.vue'),
       meta: {requiresAuth: true}
     },
+    {
+      path: '/user/:id/stats',
+      name: 'specialistStats',
+      component: () => import('../views/SpecialistStats.vue'),
+      meta: {requiresAuth: true}
+    },
   ],
 })
 

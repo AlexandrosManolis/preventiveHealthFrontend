@@ -4,7 +4,6 @@ import { useApplicationStore } from '@/stores/application.js'
 import { computed, ref, onBeforeUnmount, onMounted } from 'vue'
 
 const applicationStore = useApplicationStore()
-
 const isNavbarOpen = ref(false);
 
 const username = computed(() =>
@@ -25,7 +24,7 @@ const handleResize = () => {
   }
 }
 
-onMounted(() => {
+onMounted(async () => {
   window.addEventListener('resize', handleResize)
 })
 
@@ -61,7 +60,7 @@ onBeforeUnmount(() => {
               <RouterLink :to="{name : 'findSpecialist'}" class="nav-link fw-bolder login-button">Find Specialist</RouterLink>
           </li>
 
-          <li class="nav-item" v-if="applicationStore.isAuthenticated">
+          <li class="nav-item" v-if="applicationStore.isAuthenticated && !roles.includes('ROLE_ADMIN')">
             <div class="dropdown">
               <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton" data-bs-toggle="dropdown" aria-expanded="false" style="text-align: center">
                 Appointments
@@ -86,7 +85,7 @@ onBeforeUnmount(() => {
                 <li class="dropdown-item disabled text-dark">{{ username }}</li>
                 <li class="dropdown-item disabled text-dark" v-for="role in roles" :key="role">{{ role }}</li>
                 <RouterLink :to="{name : 'userProfile', params: {id: applicationStore.userData.id}}" class="btn login-button profile" v-if="applicationStore.isAuthenticated">Profile</RouterLink>
-                <RouterLink :to="{name : 'specialistStats',params: {id: applicationStore.userData.id}}" class="btn login-button profile" style="margin-top: 5px">Stats</RouterLink>
+                <RouterLink :to="{name : 'specialistStats',params: {id: applicationStore.userData.id}}" class="btn login-button profile" style="margin-top: 5px" v-if="roles.includes('ROLE_DOCTOR') || roles.includes('ROLE_DIAGNOSTIC')">Stats</RouterLink>
 
                 <li class="dropdown-divider"></li>
                 <RouterLink :to="{ name: 'logout' }" class="nav-link text-dark">Logout</RouterLink>
