@@ -11,6 +11,18 @@ const router = createRouter({
       meta: {requiresAuth: false}
     },
     {
+      path: '/admin',
+      name: 'adminHome',
+      component: () => import('../views/AdminHomeView.vue'),
+      meta: {requiresAuth: true}
+    },
+    {
+      path: '/admin/pendingRequests',
+      name: 'pendingRegisterRequests',
+      component: () => import('../views/PendingRegisterRequests.vue'),
+      meta: {requiresAuth: true}
+    },
+    {
       path: '/login',
       name: 'login',
       component: () => import('../views/LoginView.vue'),
@@ -74,6 +86,12 @@ const router = createRouter({
       path: '/:id/appointmentRequests',
       name: 'appointmentRequests',
       component: () => import('../views/AppointmentRequests.vue'),
+      meta: {requiresAuth: true}
+    },
+    {
+      path: '/user/:id/stats',
+      name: 'specialistStats',
+      component: () => import('../views/SpecialistStats.vue'),
       meta: {requiresAuth: true}
     },
   ],

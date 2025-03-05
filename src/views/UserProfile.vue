@@ -47,8 +47,8 @@ const formDataRef = ref({
     'specialties': [],
   },
   'registerRequest': {
-  'status': 'PENDING',
-},
+    'status': 'PENDING',
+  },
 });
 
 const { data, performRequest } = useRemoteData(urlRef, authRef, methodRef);
@@ -117,9 +117,13 @@ const loggedInUsername = computed(() =>
 const userRole = computed(() =>
   applicationStore.isAuthenticated ? applicationStore.userData.roles : [],
 )
-const profileRole = computed(() =>
-  formDataRef.value.roles?.[0]?.roleName
-);
+
+const profileRole = ref('');
+watch(() => formDataRef.value.roles, () => {
+  if (formDataRef.value.roles && formDataRef.value.roles.length > 0) {
+    profileRole.value = formDataRef.value.roles[0].roleName;
+  }
+});
 
 // Method to check if a openingHours exists for a specific day
 const openingHoursExists = (day) => {
@@ -175,236 +179,462 @@ const goback = () => router.push('/')
 </script>
 
 <template>
-  <div class="container" v-if="userRole.includes('ROLE_ADMIN') || formDataRef.username === loggedInUsername">
-    <!-- Account details card-->
-    <div class="card mb-4">
-      <div class="card-header text-center">Account Details</div>
-      <div class="card-body">
-        <form>
-        <div class="row">
-          <!-- Username -->
-          <div class="col-md-6 mb-3">
-            <label class="small mb-1" for="inputUsername">Username</label>
-            <input class="form-control" id="inputUsername" type="text" placeholder="Enter your username" v-model="formDataRef.username" />
-          </div>
+  <div class="profile-container">
 
-          <!-- Email Address -->
-          <div class="col-md-6 mb-3">
-            <label class="small mb-1" for="inputEmailAddress">Email address</label>
-            <input class="form-control" id="inputEmailAddress" type="email" placeholder="Enter your email address" v-model="formDataRef.email" />
+    <div class="profile-wrapper" v-if="userRole.includes('ROLE_ADMIN') || formDataRef.username === loggedInUsername">
+      <div class="profile-card">
+        <div class="profile-header">
+          <h2>Account Details</h2>
+          <p class="subtitle">Manage your personal information</p>
+          <div v-if="(profileRole.includes('ROLE_DOCTOR') || profileRole.includes('ROLE_DIAGNOSTIC')) && data.registerRequest.status === 'REJECTED'" class="rejection-notice">
+            <div class="alert">
+              <div class="alert-icon">
+                <i class="bi bi-exclamation-circle"></i>
+              </div>
+              <div class="alert-content">
+                <h3>Your registration has been rejected</h3>
+                <p>{{data.registerRequest.description}}</p>
+              </div>
+            </div>
           </div>
         </div>
 
-        <div class="row">
-          <!-- Full Name -->
-          <div class="col-md-6 mb-3">
-            <label class="small mb-1" for="fullName">Full name</label>
-            <input class="form-control" id="fullName" type="text" placeholder="Enter your full name" v-model="formDataRef.fullName" />
-          </div>
+        <div class="profile-body">
+          <form>
+            <div class="form-section">
+              <h3 class="section-title">Basic Information</h3>
+              <div class="form-row">
+                <div class="form-group">
+                  <label for="inputUsername">Username</label>
+                  <input class="input-field" id="inputUsername" type="text" placeholder="Enter your username" v-model="formDataRef.username" />
+                </div>
 
-          <!-- Phone Number -->
-          <div class="col-md-6 mb-3">
-            <label class="small mb-1" for="phoneNumber">Phone Number</label>
-            <input class="form-control" id="phoneNumber" type="text" placeholder="Enter your phone number" v-model="formDataRef.phoneNumber" />
-          </div>
-        </div>
+                <div class="form-group">
+                  <label for="inputEmailAddress">Email address</label>
+                  <input class="input-field" id="inputEmailAddress" type="email" placeholder="Enter your email address" v-model="formDataRef.email" />
+                </div>
+              </div>
 
-        <!-- For Role patient-->
-        <div class="row gx-3 mb-3" v-if="profileRole.includes('ROLE_PATIENT')">
-          <div class="col-md-6">
-            <label class="small mb-1" for="amka">AMKA</label>
-            <input class="form-control" id="amka" type="text" placeholder="Enter your AMKA"
-                   v-model="formDataRef.patient.amka" />
-          </div>
-          <div class="col-md-6">
-            <label class="small mb-1" for="gender">Gender</label>
-            <input class="form-control" id="gender" type="text" placeholder="Enter your gender"
-                   v-model="formDataRef.patient.gender" />
-          </div>
-          <div class="col-md-6">
-            <label class="small mb-1" for="birthday">Birthday</label>
-            <input class="form-control" id="birthday" type="date" placeholder="Enter your birthday"
-                   v-model="formDataRef.patient.birthday" />
-          </div>
-          </div>
-          <div class="row gx-3 mb-3" v-if="profileRole.includes('ROLE_DOCTOR') || profileRole.includes('ROLE_DIAGNOSTIC')">
-            <div class="col-md-4">
-              <label class="small mb-1" for="afm">AFM</label>
-              <input class="form-control" id="afm" type="text" placeholder="Enter your afm"
-                     v-model="formDataRef[profileRole.includes('ROLE_DOCTOR') ? 'doctor' : 'diagnosticCenter'].afm" />
-            </div>
-            <div class="col-md-4">
-              <label class="small mb-1" for="address">Address</label>
-              <input class="form-control" id="address" type="text" placeholder="Enter your address"
-                     v-model="formDataRef[profileRole.includes('ROLE_DOCTOR') ? 'doctor' : 'diagnosticCenter'].address" />
-            </div>
-            <div class="col-md-4">
-              <label class="small mb-1" for="city">City</label>
-              <input class="form-control" id="city" type="text" placeholder="Enter your city"
-                     v-model="formDataRef[profileRole.includes('ROLE_DOCTOR') ? 'doctor' : 'diagnosticCenter'].city" />
-            </div>
-            <div class="col-md-4">
-              <label class="small mb-1" for="state">State</label>
-              <input class="form-control" id="state" type="text" placeholder="Enter your state"
-                     v-model="formDataRef[profileRole.includes('ROLE_DOCTOR') ? 'doctor' : 'diagnosticCenter'].state" />
-            </div>
-            <div class="col-md-4">
-              <label class="small mb-1" for="doy">DOY</label>
-              <input class="form-control" id="doy" type="text" placeholder="Enter your DOY"
-                     v-model="formDataRef[profileRole.includes('ROLE_DOCTOR') ? 'doctor' : 'diagnosticCenter'].doy" />
+              <div class="form-row">
+                <div class="form-group">
+                  <label for="fullName">Full name</label>
+                  <input class="input-field" id="fullName" type="text" placeholder="Enter your full name" v-model="formDataRef.fullName" />
+                </div>
+
+                <div class="form-group">
+                  <label for="phoneNumber">Phone Number</label>
+                  <input class="input-field" id="phoneNumber" type="text" placeholder="Enter your phone number" v-model="formDataRef.phoneNumber" />
+                </div>
+              </div>
             </div>
 
-            <!-- Specialty for Doctor -->
-            <div class="col-md-4" v-if="profileRole.includes('ROLE_DOCTOR')">
-              <label class="small mb-1" for="specialty">Specialty</label>
-              <multiselect v-model="formDataRef.doctor.specialty" :options="selectSpecialties" :searchable="false"
-                           :close-on-select="true" placeholder="Select your specialty" class="form-control">
-              </multiselect>
+            <!-- For Role patient-->
+            <div class="form-section" v-if="profileRole.includes('ROLE_PATIENT')">
+              <h3 class="section-title">Patient Information</h3>
+              <div class="form-row">
+                <div class="form-group">
+                  <label for="amka">AMKA</label>
+                  <input class="input-field" id="amka" type="text" placeholder="Enter your AMKA" v-model="formDataRef.patient.amka" />
+                </div>
+
+                <div class="form-group">
+                  <label for="gender">Gender</label>
+                  <input class="input-field" id="gender" type="text" placeholder="Enter your gender" v-model="formDataRef.patient.gender" />
+                </div>
+              </div>
+
+              <div class="form-row">
+                <div class="form-group">
+                  <label for="birthday">Birthday</label>
+                  <input class="input-field" id="birthday" type="date" placeholder="Enter your birthday" v-model="formDataRef.patient.birthday" />
+                </div>
+              </div>
             </div>
 
-            <!-- Specialties for Diagnostic Centers -->
-            <div class="col-md-4" v-if="profileRole.includes('ROLE_DIAGNOSTIC')">
-              <label class="small mb-1" for="specialties">Specialties</label>
-              <multiselect v-model="formDataRef.diagnosticCenter.specialties" :options="selectSpecialties" :multiple="true"
-                           :searchable="false" :taggable="true" :close-on-select="false" placeholder="Select specialties">
-              </multiselect>
-            </div>
+            <div class="form-section" v-if="profileRole.includes('ROLE_DOCTOR') || profileRole.includes('ROLE_DIAGNOSTIC') ">
+              <h3 class="section-title">{{ profileRole.includes('ROLE_DOCTOR') ? 'Doctor' : 'Diagnostic Center' }} Information</h3>
 
-          <!-- openingHours for Doctor or Diagnostic Role -->
-          <div class="col-md-6" v-if="profileRole.includes('ROLE_DOCTOR') || profileRole.includes('ROLE_DIAGNOSTIC')" v-for="(openingHour, index) in (profileRole.includes('ROLE_DOCTOR') ? formDataRef.doctor.openingHours : formDataRef.diagnosticCenter.openingHours)" :key="openingHour.dayOfWeek + openingHour.startTime">
-            <div class="schedule-container ">
-              <div class="schedule-item">
-                <!-- Day of Week -->
-                <label class="form-control">Day of Week</label>
-                <input type="text" class="form-control" v-model="openingHour.dayOfWeek" readonly />
+              <div class="form-row">
+                <div class="form-group">
+                  <label for="afm">AFM</label>
+                  <input class="input-field" id="afm" type="text" placeholder="Enter your AFM" v-model="formDataRef[profileRole.includes('ROLE_DOCTOR') ? 'doctor' : 'diagnosticCenter'].afm" />
+                </div>
 
-                <!-- Start Time -->
-                <label class="form-control">Start Time</label>
-                <input type="time" class="form-control" v-model="openingHour.startTime" />
+                <div class="form-group">
+                  <label for="doy">DOY</label>
+                  <input class="input-field" id="doy" type="text" placeholder="Enter your DOY" v-model="formDataRef[profileRole.includes('ROLE_DOCTOR') ? 'doctor' : 'diagnosticCenter'].doy" />
+                </div>
+              </div>
 
-                <!-- End Time -->
-                <label class="form-control">End Time</label>
-                <input type="time" class="form-control" v-model="openingHour.endTime" />
+              <div class="form-row">
+                <div class="form-group">
+                  <label for="address">Address</label>
+                  <input class="input-field" id="address" type="text" placeholder="Enter your address" v-model="formDataRef[profileRole.includes('ROLE_DOCTOR') ? 'doctor' : 'diagnosticCenter'].address" />
+                </div>
+              </div>
 
-                <!-- Remove Button -->
-                <div class="button-container">
-                  <button class="btn btn-danger" @click="removeOpeningHour(index)">Remove</button>
+              <div class="form-row">
+                <div class="form-group">
+                  <label for="city">City</label>
+                  <input class="input-field" id="city" type="text" placeholder="Enter your city" v-model="formDataRef[profileRole.includes('ROLE_DOCTOR') ? 'doctor' : 'diagnosticCenter'].city" />
+                </div>
+
+                <div class="form-group">
+                  <label for="state">State</label>
+                  <input class="input-field" id="state" type="text" placeholder="Enter your state" v-model="formDataRef[profileRole.includes('ROLE_DOCTOR') ? 'doctor' : 'diagnosticCenter'].state" />
+                </div>
+              </div>
+
+              <!-- Specialty for Doctor -->
+              <div class="form-row" v-if="profileRole.includes('ROLE_DOCTOR')">
+                <div class="form-group">
+                  <label for="specialty">Specialty</label>
+                  <multiselect v-model="formDataRef.doctor.specialty" :options="selectSpecialties" :searchable="false"
+                               :close-on-select="true" placeholder="Select your specialty" class="multiselect-modern">
+                  </multiselect>
+                </div>
+              </div>
+
+              <!-- Specialties for Diagnostic Centers -->
+              <div class="form-row" v-if="profileRole.includes('ROLE_DIAGNOSTIC')">
+                <div class="form-group">
+                  <label for="specialties">Specialties</label>
+                  <multiselect v-model="formDataRef.diagnosticCenter.specialties" :options="selectSpecialties" :multiple="true"
+                               :searchable="false" :taggable="true" :close-on-select="false" placeholder="Select specialties" class="multiselect-modern">
+                  </multiselect>
                 </div>
               </div>
             </div>
           </div>
 
-          <div class="button-container">
-            <template v-for="day in ['MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY', 'SATURDAY']">
-              <button :key="day" class="btn btn-primary" v-if="!openingHoursExists(day)" @click="addOpeningHour(day)">
-                Add Opening Hour for {{ day }}
-              </button>
-            </template>
-          </div>
-          </div>
-          <!-- Save changes button-->
-          <div class="button-container">
-            <button class="btn btn-danger" type="button" @click="goback">Cancel</button>
-            <button class="btn btn-primary" type="button" @click="onSubmit" >Save changes</button>
-          </div>
-        </form>
+            <!-- Opening Hours Section -->
+            <div class="form-section" v-if="profileRole.includes('ROLE_DOCTOR') || profileRole.includes('ROLE_DIAGNOSTIC')">
+              <h3 class="section-title">Opening Hours</h3>
+              <p class="section-subtitle">Set your availability</p>
+
+              <div class="opening-hours-grid">
+                <div v-for="(openingHour, index) in (profileRole.includes('ROLE_DOCTOR') ? formDataRef.doctor.openingHours : formDataRef.diagnosticCenter.openingHours)"
+                  :key="openingHour.dayOfWeek + openingHour.startTime" class="opening-hours-card">
+                  <div class="opening-hours-day">{{ openingHour.dayOfWeek }}</div>
+                  <div class="opening-hours-inputs">
+                    <div class="time-input-group">
+                      <label>From</label>
+                      <input type="time" class="time-input" v-model="openingHour.startTime" />
+                    </div>
+
+                    <div class="time-input-group">
+                      <label>To</label>
+                      <input type="time" class="time-input" v-model="openingHour.endTime" />
+                    </div>
+                  </div>
+
+                  <button class="btn-remove" type="button" @click="removeOpeningHour(index)">
+                    <i class="bi bi-x"></i>
+                  </button>
+                </div>
+              </div>
+
+              <div class="add-hours-container">
+                <template v-for="day in ['MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY', 'SATURDAY']">
+                  <button v-if="!openingHoursExists(day)" :key="day" class="btn-add-hours" @click="addOpeningHour(day)" type="button">
+                    <i class="bi bi-plus-lg"></i> {{ day }}
+                  </button>
+                </template>
+              </div>
+            </div>
+
+            <div class="actions-container">
+              <button class="btn-cancel" type="button" @click="goback">Cancel</button>
+              <button class="btn btn-primary" type="button" @click="onSubmit">Save changes</button>
+            </div>
+          </form>
+        </div>
       </div>
     </div>
   </div>
 </template>
 
 <style scoped>
-
-body {
-  margin-top: 20px;
-  background-color: #f2f6fc;
-  color: #69707a;
+/* Main Container */
+.profile-container {
+  margin-top: 60px;
+  padding: 2rem;
+  background-color: transparent;
 }
 
-/* Container Styles */
-.schedule-container {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
+.profile-wrapper {
+  margin: 0 auto;
 }
 
-.schedule-item {
-  display: block;
-  width: 100%;
+.profile-card {
+  background-color: transparent;
+  overflow: hidden;
+  margin-top: 2rem;
 }
 
-/* Form Styles */
-.form-control {
-  width: 100%;
-  padding: 0.875rem 1.125rem;
+/* Header */
+.profile-header {
+  padding: 1.5rem 2rem;
+  border-bottom: 1px solid #e5e7eb;
+  background-color: #f8f9fa;
+}
+
+.profile-header h2 {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #1f2937;
+  margin: 0;
+}
+
+.subtitle {
+  color: #6b7280;
+  margin-top: 0.25rem;
+  font-size: 0.875rem;
+}
+
+/* Form */
+.profile-body {
+  padding: 2rem;
+}
+
+.form-section {
+  margin-bottom: 2rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.form-section:last-child {
+  border-bottom: none;
+}
+
+.section-title {
   font-size: 1rem;
-  border: 1px solid #c5ccd6;
-  border-radius: 8px;
-  background-color: #fff;
-  color: #69707a;
-  transition: border-color 0.2s ease, box-shadow 0.2s ease;
-  margin-top: 10px;
+  font-weight: 600;
+  color: #374151;
+  margin-bottom: 1rem;
 }
 
-.form-control:focus {
-  border-color: #007bff;
-  box-shadow: 0 0 10px rgba(0, 123, 255, 0.2);
+.section-subtitle {
+  color: #6b7280;
+  font-size: 0.875rem;
+  margin-top: -0.5rem;
+  margin-bottom: 1rem;
+}
+
+.form-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.form-group {
+  flex: 1;
+  min-width: 250px;
 }
 
 label {
-  margin-bottom: 5px;
+  display: block;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #4b5563;
+  margin-bottom: 0.5rem;
 }
 
-input {
+.input-field {
   width: 100%;
-  padding: 10px;
+  padding: 0.75rem 1rem;
+  border: 1px solid #d1d5db;
+  border-radius: 0.5rem;
+  font-size: 0.875rem;
+  color: #1f2937;
+  background-color: #fff;
+  transition: all 0.2s ease;
 }
 
-/* Button Styles */
-.button-container {
+.input-field:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.input-field::placeholder {
+  color: #9ca3af;
+}
+
+.alert {
+  display: flex;
+  background-color: #fee2e2;
+  border-radius: 0.5rem;
+  padding: 1rem;
+  border-left: 4px solid #ef4444;
+}
+
+.alert-icon {
+  flex-shrink: 0;
+  color: #ef4444;
+  margin-right: 1rem;
+}
+
+.alert-content h3 {
+  margin: 0 0 0.5rem 0;
+  font-size: 1rem;
+  color: #b91c1c;
+}
+
+.alert-content p {
+  margin: 0;
+  color: #7f1d1d;
+  font-size: 0.875rem;
+}
+
+/* Opening Hours */
+.opening-hours-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.opening-hours-card {
+  background-color: #f9fafb;
+  border-radius: 0.5rem;
+  padding: 1rem;
+  border: 1px solid #e5e7eb;
+  position: relative;
+}
+
+.opening-hours-day {
+  font-weight: 600;
+  color: #374151;
+  margin-bottom: 0.75rem;
+  border-bottom: 1px solid #e5e7eb;
+  padding-bottom: 0.5rem;
+}
+
+.opening-hours-inputs {
   display: flex;
   gap: 1rem;
-  justify-content: space-between;
-  margin-top: 1rem;
-  flex-wrap: wrap;
+  margin-bottom: 0.5rem;
 }
 
-.btn {
-  flex: 1 1 calc(50% - 1rem);
-  text-align: center;
-  min-width: 150px;
-  padding: 0.5rem 1rem;
-  border-radius: 5px;
-  color: #fff;
+.time-input-group {
+  flex: 1;
+}
+
+.time-input-group label {
+  font-size: 0.75rem;
+  color: #6b7280;
+}
+
+.time-input {
+  width: 100%;
+  padding: 0.5rem;
+  border: 1px solid #d1d5db;
+  border-radius: 0.375rem;
+  font-size: 0.875rem;
+}
+
+.btn-remove {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
+  background: none;
   border: none;
+  color: #9ca3af;
   cursor: pointer;
-  margin-top: 5px;
-  transition: background-color 0.3s ease;
+  padding: 0.25rem;
+  border-radius: 0.25rem;
+  transition: all 0.2s ease;
 }
 
-/* Card Styles */
-.card {
-  margin-top: 100px;
-  box-shadow: 0 0.15rem 1.75rem rgb(33 40 50 / 15%);
+.btn-remove:hover {
+  color: #ef4444;
+  background-color: #fee2e2;
 }
 
-.card-header {
+.add-hours-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 1rem;
+}
+
+.btn-add-hours {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  background-color: #f3f4f6;
+  border: 1px solid #d1d5db;
+  color: #4b5563;
+  padding: 0.5rem 0.75rem;
+  border-radius: 0.375rem;
+  font-size: 0.75rem;
   font-weight: 500;
-  padding: 1rem 1.35rem;
-  background-color: rgba(33, 40, 50, 0.03);
-  border-bottom: 1px solid rgba(33, 40, 50, 0.125);
-  border-radius: 0.35rem 0.35rem 0 0;
+  cursor: pointer;
+  transition: all 0.2s ease;
 }
 
-/* Responsive Design */
+.btn-add-hours:hover {
+  background-color: #e5e7eb;
+  border-color: #9ca3af;
+}
+
+/* Button styles */
+.actions-container {
+  display: flex;
+  justify-content: flex-end;
+  gap: 1rem;
+  margin-top: 2rem;
+}
+
+.btn-cancel {
+  padding: 0.75rem 1.5rem;
+  border-radius: 0.5rem;
+  font-weight: 500;
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-cancel {
+  background-color: #f9fafb;
+  color: #4b5563;
+  border: 1px solid #d1d5db;
+}
+
+.btn-cancel:hover {
+  background-color: #f3f4f6;
+  border-color: #9ca3af;
+}
+
+/* Multiselect styling */
+.multiselect-modern {
+  border-radius: 0.5rem !important;
+  border: 1px solid #d1d5db !important;
+}
+
+/* Responsive adjustments */
 @media (max-width: 768px) {
-  .form-container {
-    grid-template-columns: 1fr;
+  .profile-container {
+    padding: 1rem;
   }
 
-  .btn {
-    flex: 1 1 100%;
-    min-width: unset;
+  .profile-body {
+    padding: 1.5rem;
+  }
+
+  .form-group {
+    min-width: 100%;
+  }
+
+  .actions-container {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .btn-cancel {
+    width: 100%;
   }
 }
 </style>
