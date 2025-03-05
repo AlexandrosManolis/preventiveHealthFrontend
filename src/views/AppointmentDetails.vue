@@ -5,6 +5,7 @@ import { useRemoteData } from '@/composables/useRemoteData.js'
 import Calendar from '@/views/Calendar.vue'
 import { useApplicationStore } from '@/stores/application.js'
 import Swal from 'sweetalert2'
+import index from 'v-calendar'
 
 const route = useRoute()
 const router = useRouter()
@@ -20,13 +21,34 @@ const urlRef = ref(
 const authRef = ref(true)
 
 const { performRequest, data } = useRemoteData(urlRef, authRef)
+const formDataRef = ref({
+  diagnosisDescription : '',
+  recheckNeeded : '',
+  medicalFileNeeded : '',
+  recheckDate : null,
+  medicalFile : null
+});
+
+watch(formDataRef, (newData)=>{
+  console.log(newData)
+  if (newData) {
+    Object.assign(formDataRef.value, JSON.parse(JSON.stringify(newData)));
+  }
+});
 
 onMounted(() => {
-  performRequest()
+  performRequest();
 })
 
+watch(data, (newData)=>{
+  formDataRef.value.diagnosisDescription = newData.diagnosisDescription || '';
+  formDataRef.value.recheckNeeded = newData.recheckNeeded || '';
+  formDataRef.value.medicalFileNeeded = newData.medicalFileNeeded || '';
+  formDataRef.value.recheckDate = newData.recheckDate || null;
+});
+
 const goBack = () => {
-  return router.push(`/user/${userIdRef.value}/appointments`)
+  return router.back(1)
 }
 
 const destroy = (appointmentId) => {
@@ -81,12 +103,12 @@ const destroy = (appointmentId) => {
 
 const untilOneHourBefore = ref(false);
 
+const today = new Date();
+today.setHours(0,0,0,0);
+
 untilOneHourBefore.value = (dateString, time) => {
   const date = new Date(dateString);
   date.setHours(0, 0, 0, 0);
-
-  const today = new Date();
-  today.setHours(0,0,0,0);
 
   if (date.getTime() < today.getTime() || date.getTime() > today.getTime()) {
     return true;
@@ -117,10 +139,106 @@ untilOneHourBefore.value = (dateString, time) => {
 const userRole = computed(() =>
   applicationStore.isAuthenticated ? applicationStore.userData.roles : []
 )
+
+const isDropdownOpen = ref([]);
+
+const toggleDropdown = (index) => {
+  isDropdownOpen.value[index] = !isDropdownOpen.value[index]
+}
+
+const validatePdf = (event) =>{
+  const file = event.target.files[0];
+
+  if(!file){
+    formDataRef.value.medicalFile = null;
+    return;
+  }
+
+  if(file && file.type !== 'application/pdf'){
+    alert('Only pdf allowed');
+    event.target.value = '';
+    formDataRef.value.medicalFile = null;
+    return;
+  }
+  formDataRef.value.medicalFile = file;
+}
+
+const recheckNumber = ref(null);
+const recheckNumberType = ref('');
+
+const recheckNumberToDate = ()=>{
+  const today = new Date();
+  if (recheckNumber.value !== null){
+    if (recheckNumberType.value === 'days'){
+      today.setDate(today.getDate()+ recheckNumber.value);
+    }else if(recheckNumberType.value === 'months'){
+      today.setMonth(today.getMonth() + recheckNumber.value);
+    }else if(recheckNumberType.value === 'years'){
+      today.setFullYear(today.getFullYear()+ recheckNumber.value)
+    }
+  }
+  return formDataRef.value.recheckDate = today.toISOString().split('T')[0];
+}
+
+const onSubmit = (event)=>{
+  event.preventDefault();
+  if(formDataRef.value.recheckNeeded === 'YES' && data.value.appointmentStatus === 'PENDING'){
+    recheckNumberToDate();
+  }
+  const authRef= ref(true);
+  const methodRef = ref("POST");
+  const urlRef = ref(`${backendEnvVar}/api/appointment/${userIdRef.value}/appointments/${appointmentIdRef.value}/complete`)
+  const {performRequest} = useRemoteData(urlRef, authRef, methodRef, formDataRef);
+  try{
+    performRequest();
+    Swal.fire({
+      title: "Appointment accepted successfully",
+      icon: "success"
+    }).then(() => {
+      window.location.reload();
+    });
+  }catch (err){
+    Swal.fire({
+      title: "An error occurred",
+      icon: "error",
+      text: err.message || "Something went wrong!"
+    });
+  }
+
+}
+
+const downloadFile = async () => {
+  const authRef = ref(true);
+  const urlRef = ref(`${backendEnvVar}/api/appointment/${userIdRef.value}/appointments/${appointmentIdRef.value}/details/examFile`);
+  const { performRequest } = useRemoteData(urlRef, authRef);
+
+  try {
+    const blob = await performRequest();
+    if (blob instanceof Blob) {
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = data.value.medicalExam.fileName || "download.pdf";
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+    } else {
+      throw new Error("Invalid response, expected a PDF file.");
+    }
+  } catch (error) {
+    console.error("Error downloading file:", error);
+    Swal.fire({
+      title: "Download failed",
+      icon: "error",
+      text: error.message || "An error occurred while downloading the file.",
+    });
+  }
+};
 </script>
 
 <template>
-  <div class="table-container">
+  <div class="table-container" style="display: flex; flex-direction: row; align-items: center">
     <div v-if="data">
       <h1 class="text-center">Appointment Details</h1>
       <table class="appointment-table">
@@ -130,25 +248,18 @@ const userRole = computed(() =>
           <td>{{ data.id }}</td>
         </tr>
         <tr>
-          <th>Name</th>
-          <td>{{ data.doctor?.fullName || data.diagnosticCenter?.fullName }}</td>
+          <th>Doctor Name / Specialty</th>
+          <td>{{ data.doctor?.fullName || data.diagnosticCenter?.fullName }} / {{ data.specialty }}</td>
         </tr>
-        <tr>
-          <th>Specialty</th>
-          <td>{{ data.specialty }}</td>
+        <tr v-if="!userRole.includes('ROLE_PATIENT')">
+          <th>Patient Name</th>
+          <td>{{data.patient.fullName}}</td>
         </tr>
         <tr>
           <th>Address</th>
           <td>
-            {{
-              (specialistAddress = `${data.doctor?.address || data.diagnosticCenter?.address}, ${data.doctor?.city || data.diagnosticCenter?.city}, ${data.doctor?.state || data.diagnosticCenter?.state}`)
-            }}
-            <a
-              :href="`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(specialistAddress)}`"
-              target="_blank"
-              class="bi bi-sign-turn-right"
-              title="Open in Google Maps"
-            ></a>
+            {{(specialistAddress = `${data.doctor?.address || data.diagnosticCenter?.address}, ${data.doctor?.city || data.diagnosticCenter?.city}, ${data.doctor?.state || data.diagnosticCenter?.state}`) }}
+            <a :href="`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(specialistAddress)}`" target="_blank" class="bi bi-sign-turn-right" title="Open in Google Maps"></a>
           </td>
         </tr>
         <tr>
@@ -167,45 +278,181 @@ const userRole = computed(() =>
           <th>Cause of appointment</th>
           <td>{{ data.appointmentCause }}</td>
         </tr>
+        <tr v-if="data.appointmentStatus === 'COMPLETED'">
+          <th>Medical file Needed? <span v-if="data.medicalFileNeeded === 'YES'">/ Download Medical file</span></th>
+        <!--ADD FILE FOR PATIENT TO DOWNLOAD-->
+          <td>{{ data.medicalFileNeeded }}
+            <div v-if="data.medicalFileNeeded === 'YES' && !userRole.includes('ROLE_PATIENT') && !data.medicalExam" style="margin-left: 5px">
+              / <input type="file" name="upload" accept="application/pdf" @change="validatePdf" style="margin-left: 5px">
+            </div>
+            <div v-if="data.medicalFileNeeded === 'YES' && data.medicalExam">
+              / <a :href="`${backendEnvVar}/api/appointment/${userIdRef}/appointments/${appointmentIdRef}/details/examFile`"
+                   target="_blank" class="bi bi-file-pdf"
+                   @click.prevent="downloadFile">Download</a>
+            </div>
+          </td>
+        </tr>
+        <tr v-if="data.appointmentStatus === 'COMPLETED'">
+          <th>Recheck Needed? <span v-if="data.recheckNeeded === 'YES'">/ Recheck estimated date</span></th>
+          <td>{{ data.recheckNeeded }} {{data.recheckNeeded === 'YES' ? ' / ' + data.recheckDate : ''}}</td>
+        </tr>
+        <tr v-if="data.appointmentStatus === 'COMPLETED'">
+          <th>Diagnosis description</th>
+          <td v-if="userRole.includes('ROLE_PATIENT')">{{ data.diagnosisDescription }}</td>
+          <td v-if="!userRole.includes('ROLE_PATIENT')">
+            <div style="width: 100%">
+              <input type="text" style="width: 100%; margin-right: 10px" v-model="formDataRef.diagnosisDescription">
+            </div>
+            <div>
+              <button type="submit" class="btn btn-primary" style="width: 100%" @click="onSubmit" :disabled="data.appointmentStatus === 'COMPLETED' && (!formDataRef.diagnosisDescription.trim() || (!formDataRef.medicalFile && data.medicalFileNeeded === 'YES'))">
+                Submit
+              </button>
+            </div>
+          </td>
+        </tr>
         <tr v-if="data.appointmentRequestStatus === 'REJECTED'">
           <th>Cause of rejection</th>
           <td>{{ data.rejectionCause }}</td>
         </tr>
         </tbody>
       </table>
+
+      <div v-if="!userRole.includes('ROLE_PATIENT') && data.appointmentStatus === 'PENDING'" style="position: relative;">
+        <button type="button" class="btn btn-success" @click="toggleDropdown(index)" style="width: 100%; margin-top: 10px;" v-if="data.appointmentStatus === 'PENDING'">
+          Complete appointment
+        </button>
+
+        <div v-if="isDropdownOpen[index]" style="width: auto; padding: 10px; background: transparent; display: flex; flex-direction:column;flex-wrap: wrap;">
+
+          <!-- Exam Needed -->
+          <div class="form-group" style="margin-right: 15px;">
+            <b>Medical file needed?</b>
+            <div class="form-check form-check-inline">
+              <input class="form-check-input" type="radio" name="medicalFileNeeded" id="yes" value="YES" v-model="formDataRef.medicalFileNeeded" :checked="data.medicalFileNeeded ==='YES'">
+              <label class="form-check-label" for="yes">Yes</label>
+            </div>
+            <div class="form-check form-check-inline">
+              <input class="form-check-input" type="radio" name="medicalFileNeeded" id="no" value="NO" v-model="formDataRef.medicalFileNeeded" :checked="data.medicalFileNeeded ==='NO'">
+              <label class="form-check-label" for="no">No</label>
+            </div>
+
+            <div class="form-check form-check-inline" v-if="formDataRef.medicalFileNeeded === 'YES'">
+              <input type="file" name="upload" accept="application/pdf" @change="validatePdf">
+            </div>
+          </div>
+
+          <!-- Recheck Needed -->
+          <div class="form-group" style="margin-right: 15px; display: flex; align-items: center;">
+            <b style="margin-right: 10px;">Recheck needed?</b>
+
+            <!-- Radio Buttons -->
+            <div class="form-check form-check-inline" style="display: inline-flex; align-items: center;">
+              <input class="form-check-input" type="radio" name="recheck" id="recheckYes" value="YES" v-model="formDataRef.recheckNeeded">
+              <label class="form-check-label" for="recheckYes" style="margin-left: 5px;">Yes</label>
+            </div>
+            <div class="form-check form-check-inline" style="display: inline-flex; align-items: center; margin-left: 10px;">
+              <input class="form-check-input" type="radio" name="recheck" id="recheckNo" value="NO" v-model="formDataRef.recheckNeeded">
+              <label class="form-check-label" for="recheckNo" style="margin-left: 5px;">No</label>
+            </div>
+
+            <!-- Recheck Duration (if needed) -->
+            <div v-if="formDataRef.recheckNeeded === 'YES'" class="form-group" style="display: flex; align-items: center; margin-left: 15px;">
+              <span><b>Recheck in:</b></span>
+              <input type="number" min="1" v-model="recheckNumber" style="width: auto; margin-left: 5px; margin-right: 5px; background-color: transparent; border: 1px solid #ccc;">
+              <select class="btn" v-model="recheckNumberType">
+                <option value="days">Days</option>
+                <option value="months">Months</option>
+                <option value="years">Years</option>
+              </select>
+            </div>
+
+          </div>
+          <div>
+            <span style="margin-right: 5px;"><b>Diagnostic results description:</b></span>
+            <input type="text" style="width: 100%; margin-bottom: 5px" v-model="formDataRef.diagnosisDescription">
+          </div>
+
+          <div>
+            <button type="submit" class="btn btn-primary" style="width: 100%" @click="onSubmit"
+                    :disabled="!formDataRef.recheckNeeded || !formDataRef.diagnosisDescription.trim() || (formDataRef.recheckNeeded === 'YES' && (!recheckNumberType || !recheckNumber)) || !formDataRef.medicalFileNeeded">
+              Submit
+            </button>
+          </div>
+        </div>
+      </div>
+
       <div style="margin-top: 5px">
         <button class="btn btn-secondary" @click="goBack">Back</button>
-        <button style="float: right; margin-left: 5px" class="btn btn-danger" @click="destroy" v-if="data.appointmentStatus !== 'CANCELLED' && untilOneHourBefore(data.date, data.time)">
+        <button style="float: right; margin-left: 5px" class="btn btn-danger" @click="destroy" v-if="data.appointmentStatus === 'PENDING' && untilOneHourBefore(data.date, data.time)">
           Cancel appointment
         </button>
       </div>
-      <Calendar :data="data" :specialty="data.specialty" calendar-type="changeAppointment" v-if="userRole.includes('ROLE_PATIENT')"/>
+      <Calendar :data="data" :specialty="data.specialty" calendar-type="changeAppointment" v-if="userRole.includes('ROLE_PATIENT') && !data.appointmentStatus === 'COMPLETED'"/>
     </div>
   </div>
 </template>
 
 <style scoped>
+input[type="radio"]{
+  display: none;
+}
+label{
+  cursor: pointer;
+  display: inline-flex;
+  gap: 0.4em;
+  border: 3px solid black;
+  padding: 0.1em 0.1em;
+  border-radius: 0.5em;
+}
+label:before{
+  content: "";
+  height: 0.5em;
+  width: 0.5em;
+  border: 3px solid #181818;
+  border-radius: 50%;
+}
+input[type="radio"]:checked + label:before{
+  height: 0.25em;
+  width: 0.25em;
+  border: 0.3em solid white;
+  background-color: #181818;
+}
+input[type="radio"]:checked + label{
+  background-color: #181818;
+  color: white;
+}
+
+.appointment-table, .appointment-table tbody{
+  display: block;
+  width: 100vh;
+  overflow: auto;
+}
+
+.appointment-table tr {
+  display: block;
+  border-radius: 10px;
+  margin-bottom: 15px;
+  padding: 10px;
+  box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.1);
+  width: 100%;
+}
+
+.appointment-table td {
+  display: flex;
+  justify-content: flex-start;
+  padding: 10px;
+  font-size: 16px;
+  font-weight: bold;
+}
 
 .table-container {
   margin-top: 60px;
   padding: 20px;
 }
 
-.appointment-table th {
-  font-weight: bold;
-}
-
-.appointment-table th,
-.appointment-table td {
-  border: 1px solid black;
-  border-collapse: collapse;
-  white-space: nowrap;
-  padding: 25px 30px;
-  text-align: center;
-}
-
-.appointment-table {
-  width: 100%;
-  border-collapse: collapse;
+@media (max-width: 1200px) {
+  .appointment-table, .appointment-table tbody{
+    width: 100%;
+  }
 }
 </style>
