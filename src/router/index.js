@@ -11,6 +11,18 @@ const router = createRouter({
       meta: {requiresAuth: false}
     },
     {
+      path: '/admin',
+      name: 'adminHome',
+      component: () => import('../views/AdminHomeView.vue'),
+      meta: {requiresAuth: true}
+    },
+    {
+      path: '/admin/pendingRequests',
+      name: 'pendingRegisterRequests',
+      component: () => import('../views/PendingRegisterRequests.vue'),
+      meta: {requiresAuth: true}
+    },
+    {
       path: '/login',
       name: 'login',
       component: () => import('../views/LoginView.vue'),

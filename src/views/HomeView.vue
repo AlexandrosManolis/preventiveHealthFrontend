@@ -2,6 +2,7 @@
 import {ref, computed, onMounted, onUnmounted} from 'vue'
 import { useApplicationStore } from '@/stores/application.js'
 import { useRemoteData } from '@/composables/useRemoteData.js'
+import router from '@/router/index.js'
 
 const applicationStore = useApplicationStore()
 const backendEnvVar = import.meta.env.VITE_BACKEND
@@ -41,9 +42,9 @@ const checkRequestExistence = async (username, status) => {
 const lines = ref([]);
 
 onMounted(async () => {
-  if(applicationStore.isAuthenticated && (userRole.value.includes("ROLE_DOCTOR") || userRole.value.includes("ROLE_DIAGNOSTIC"))){
-    pendingUserRequest.value = await checkRequestExistence(username.value, 'pending')
-    rejectedUserRequest.value = await checkRequestExistence(username.value, 'rejected')
+  if(userRole.value.includes('ROLE_ADMIN')){
+    router.replace({name: 'adminHome'});
+    return;
   }
 
   const observer = new IntersectionObserver((entries) => {
@@ -60,14 +61,22 @@ onMounted(async () => {
   const cards = document.querySelectorAll('.card');
   cards.forEach(card => observer.observe(card));
 
-  // Cleanup observer when component unmounts
-  onUnmounted(() => observer.disconnect());
+  onUnmounted(() => {
+    observer.disconnect();
+  });
+
+  await (async () => {
+    if (applicationStore.isAuthenticated && (userRole.value.includes("ROLE_DOCTOR") || userRole.value.includes("ROLE_DIAGNOSTIC"))) {
+      pendingUserRequest.value = await checkRequestExistence(username.value, 'pending');
+      rejectedUserRequest.value = await checkRequestExistence(username.value, 'rejected');
+    }
+  })();
 })
 
 </script>
 
 <template>
-  <div style="display:flex; flex-direction: column">
+  <div style="display:flex; flex-direction: column" v-if="!userRole.includes('ROLE_ADMIN')">
     <div class="overlay" style="text-align: center">
       <img src="../assets/home-image.webp" alt="Preventive Health App Design"/>
       <h1 style="font-size: xxx-large; width: 100%">Welcome to Preventive Health</h1>
