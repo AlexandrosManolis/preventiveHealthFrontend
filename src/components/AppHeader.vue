@@ -87,6 +87,7 @@ onBeforeUnmount(() => {
                 <RouterLink :to="{name : 'userProfile', params: {id: applicationStore.userData.id}}" class="btn login-button profile" v-if="applicationStore.isAuthenticated">Profile</RouterLink>
                 <RouterLink :to="{name : 'specialistStats',params: {id: applicationStore.userData.id}}" class="btn login-button profile" style="margin-top: 5px" v-if="roles.includes('ROLE_DOCTOR') || roles.includes('ROLE_DIAGNOSTIC')">Stats</RouterLink>
 
+
                 <li class="dropdown-divider"></li>
                 <RouterLink :to="{ name: 'logout' }" class="nav-link text-dark">Logout</RouterLink>
               </ul>

@@ -305,6 +305,7 @@ const goback = () => router.push('/')
                 </div>
               </div>
             </div>
+          </div>
 
             <!-- Opening Hours Section -->
             <div class="form-section" v-if="profileRole.includes('ROLE_DOCTOR') || profileRole.includes('ROLE_DIAGNOSTIC')">
