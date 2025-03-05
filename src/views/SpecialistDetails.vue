@@ -3,6 +3,7 @@ import { onMounted, ref, watch } from 'vue'
 import { useRemoteData } from '@/composables/useRemoteData.js'
 import { useRoute, useRouter } from 'vue-router'
 import Calendar from '@/views/Calendar.vue'
+import RateSpecialist from '@/views/RateSpecialist.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -51,7 +52,7 @@ watch(() => formDataRef.value.specialty, (newValue) => {
 
 onMounted(() => {
   performRequest();
-})
+});
 
 const goback = () => router.push('/find_specialist');
 </script>
@@ -99,6 +100,7 @@ const goback = () => router.push('/find_specialist');
           </select>
         </div>
       </div>
+      <RateSpecialist/>
     </div>
     <div>
       <Calendar :data="data" :specialty="formDataRef.specialty" calendar-type="makeAppointment"/>
