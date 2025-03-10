@@ -166,12 +166,14 @@ const removeOpeningHour = (index) => {
 const selectSpecialties= ref([]);
 
 onMounted(async ()=>{
-  const response = await fetch(`${backendEnvVar}/api/user/specialties`);
-  if(response.ok){
-    const data = await response.json();
-    selectSpecialties.value = data.map(item => item.name);
-  }else {
-    console.error('Error fetching specialties:', response.statusText);
+  if(!userRole.value.includes('ROLE_PATIENT')){
+    const response = await fetch(`${backendEnvVar}/api/user/specialties`);
+    if(response.ok){
+      const data = await response.json();
+      selectSpecialties.value = data.map(item => item.name);
+    }else {
+      console.error('Error fetching specialties:', response.statusText);
+    }
   }
 });
 
@@ -305,7 +307,6 @@ const goback = () => router.push('/')
                 </div>
               </div>
             </div>
-          </div>
 
             <!-- Opening Hours Section -->
             <div class="form-section" v-if="profileRole.includes('ROLE_DOCTOR') || profileRole.includes('ROLE_DIAGNOSTIC')">

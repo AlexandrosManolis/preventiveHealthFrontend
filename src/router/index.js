@@ -94,6 +94,12 @@ const router = createRouter({
       component: () => import('../views/SpecialistStats.vue'),
       meta: {requiresAuth: true}
     },
+    {
+      path: '/user/:id/preventiveCareReminder',
+      name: 'preventiveCareReminder',
+      component: () => import('../views/PreventiveCareReminder.vue'),
+      meta: {requiresAuth: true}
+    },
   ],
 })
 

@@ -25,8 +25,7 @@ export function useRemoteData(urlRef, authRef, methodRef = ref("GET"), bodyRef =
       };
 
       if (bodyRef.value !== null) {
-        if (bodyRef.value.medicalFile instanceof File) {
-          // Use FormData when a file exists
+        if (bodyRef.value && 'medicalFile' in bodyRef.value && bodyRef.value.medicalFile instanceof File) {
           const formData = new FormData();
           Object.keys(bodyRef.value).forEach((key) => {
             if (key === "medicalFile" && bodyRef.value[key]) {
@@ -39,8 +38,7 @@ export function useRemoteData(urlRef, authRef, methodRef = ref("GET"), bodyRef =
           config.body = formData;
           delete headers["Content-Type"];
         } else {
-          config.body = typeof bodyRef.value === "string" ? bodyRef.value : JSON.stringify(bodyRef.value);
-
+          config.body = JSON.stringify(bodyRef.value);
           headers["Content-Type"] = "application/json";
         }
       }
