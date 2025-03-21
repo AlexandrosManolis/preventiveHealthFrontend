@@ -128,11 +128,29 @@ const toggleDropdown = idx => {
   isDropdownOpen.value = isDropdownOpen.value.map((_, i) => i === idx)
 }
 
-const handleDateClick = (day, idx) => {
-  if (!day.isDisabled && day.date instanceof Date) {
-    formDataRef.value[idx].lastExamDate = day.date.toISOString().split('T')[0]
-    setTimeout(() => toggleDropdown(idx), 10)
+const handleDateClick = (day, index, event) => {
+  if (day.isDisabled) return
+  const clickedDate = day.date
+
+  if (!clickedDate || !(clickedDate instanceof Date)) {
+    console.error("Invalid date:", day)
+    return
   }
+
+  // Format the date as YYYY-MM-DD
+  const year = clickedDate.getFullYear()
+  const month = String(clickedDate.getMonth() + 1).padStart(2, "0")
+  const date = String(clickedDate.getDate()).padStart(2, "0")
+
+  formDataRef.value[index].lastExamDate = `${year}-${month}-${date}`
+
+  if (event?.target) {
+    event.target.blur()
+  }
+
+  setTimeout(() => {
+    toggleDropdown(index)
+  }, 10)
 }
 
 const submitForm = () => {
@@ -239,7 +257,7 @@ const goBack = () => router.push(`/user/${userIdRef.value}/preventiveCareReminde
 
             <!-- Toggle buttons for checkup types -->
             <div class="form-row button-group">
-              <button type="button" @click="toggleRegularHealthCheck(activeFormIndex)"
+              <button type="button" @click="toggleRegularHealthCheck(activeFormIndex)" v-if="formDataRef[activeFormIndex].isRequired"
                 :class="['toggle-btn', formDataRef[activeFormIndex].isRegularHealthCheck ? 'active' : '']">
                 <i :class="formDataRef[activeFormIndex].isRegularHealthCheck ? 'bi-check-circle-fill' : 'bi-plus-circle'"></i>
                 {{ formDataRef[activeFormIndex].isRegularHealthCheck ? 'Remove' : 'Add' }} Regular health check
