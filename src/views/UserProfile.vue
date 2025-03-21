@@ -351,7 +351,6 @@ const goback = () => router.push('/')
                 </template>
               </div>
             </div>
-
             <div class="actions-container">
               <button class="btn-cancel" type="button" @click="goback">Cancel</button>
               <button class="btn btn-primary" type="button" @click="onSubmit">Save changes</button>
@@ -622,6 +621,7 @@ label {
   border-radius: 0.5rem !important;
   border: 1px solid #d1d5db !important;
 }
+
 
 /* Responsive adjustments */
 @media (max-width: 768px) {
