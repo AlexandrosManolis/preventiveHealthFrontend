@@ -342,7 +342,6 @@ const navigateToFindSpecialist = async () => {
   border-radius: 0.75rem;
   background-color: transparent;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
-  overflow: hidden;
 }
 
 .search-heading {

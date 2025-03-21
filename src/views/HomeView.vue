@@ -3,6 +3,7 @@ import {ref, computed, onMounted, onUnmounted} from 'vue'
 import { useApplicationStore } from '@/stores/application.js'
 import { useRemoteData } from '@/composables/useRemoteData.js'
 import router from '@/router/index.js'
+import { RouterLink } from 'vue-router'
 
 const applicationStore = useApplicationStore()
 const backendEnvVar = import.meta.env.VITE_BACKEND
@@ -137,6 +138,13 @@ onMounted(async () => {
               <h2>Uncompleted Appointments</h2>
               <p>Check your pending or cancelled appointments.</p>
             </div>
+          </RouterLink>
+          <RouterLink :to="{name : 'preventiveCareReminder', params: {id : applicationStore.userData.id}}" v-if="userRole.includes('ROLE_PATIENT')" class="card btn fw-bolder btn-dark">
+            <div class="card-content">
+              <h2>Preventive Care Reminder</h2>
+              <p>Stay on top of your health with reminders to schedule your preventive check-ups.</p>
+            </div>
+
           </RouterLink>
           <RouterLink :to="{name : 'appointmentRequests', params: {id: applicationStore.userData.id}}" class="card btn fw-bolder btn-dark"
           v-if="(userRole.includes('ROLE_DOCTOR') || userRole.includes('ROLE_DIAGNOSTIC')) && !pendingUserRequest.exists && !rejectedUserRequest.exists">

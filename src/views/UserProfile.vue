@@ -53,17 +53,39 @@ const formDataRef = ref({
 
 const { data, performRequest } = useRemoteData(urlRef, authRef, methodRef);
 
+const selectSpecialties= ref([]);
+
+onMounted(async ()=>{
+  performRequest();
+  if(!userRole.value.includes('ROLE_PATIENT')){
+    try{
+      urlRef.value = `${backendEnvVar}/api/user/specialties`;
+      const {performRequest} = useRemoteData(urlRef, authRef)
+      const response = await performRequest()
+
+      if (response === null || response === undefined) {
+        throw new Error("No data received from the backend.");
+      }else{
+        if (typeof response[0] === 'string') {
+          selectSpecialties.value = response;
+        }
+        else {
+          selectSpecialties.value = response.map(item => item.name);
+        }
+      }
+    }catch (err){
+      console.error("Error fetching:", err);
+    }
+
+  }
+});
+
 // Watch fetched data to populate form fields
 watch(data, (newData) => {
   if (newData) {
     // Deeply merge the new data into formDataRef
     Object.assign(formDataRef.value, JSON.parse(JSON.stringify(newData)));
   }
-});
-
-// Fetch profile details on mount
-onMounted(() => {
-  performRequest();
 });
 
 const onSubmit = async (event) => {
@@ -162,18 +184,6 @@ const removeOpeningHour = (index) => {
     console.log("After Remove: ", openingHours);
   }
 };
-
-const selectSpecialties= ref([]);
-
-onMounted(async ()=>{
-  const response = await fetch(`${backendEnvVar}/api/user/specialties`);
-  if(response.ok){
-    const data = await response.json();
-    selectSpecialties.value = data.map(item => item.name);
-  }else {
-    console.error('Error fetching specialties:', response.statusText);
-  }
-});
 
 const goback = () => router.push('/')
 </script>
@@ -305,7 +315,6 @@ const goback = () => router.push('/')
                 </div>
               </div>
             </div>
-          </div>
 
             <!-- Opening Hours Section -->
             <div class="form-section" v-if="profileRole.includes('ROLE_DOCTOR') || profileRole.includes('ROLE_DIAGNOSTIC')">
@@ -342,7 +351,6 @@ const goback = () => router.push('/')
                 </template>
               </div>
             </div>
-
             <div class="actions-container">
               <button class="btn-cancel" type="button" @click="goback">Cancel</button>
               <button class="btn btn-primary" type="button" @click="onSubmit">Save changes</button>
@@ -613,6 +621,7 @@ label {
   border-radius: 0.5rem !important;
   border: 1px solid #d1d5db !important;
 }
+
 
 /* Responsive adjustments */
 @media (max-width: 768px) {

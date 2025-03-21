@@ -60,6 +60,10 @@ onBeforeUnmount(() => {
               <RouterLink :to="{name : 'findSpecialist'}" class="nav-link fw-bolder login-button">Find Specialist</RouterLink>
           </li>
 
+          <li class="nav-item" v-if="roles.includes('ROLE_PATIENT')">
+            <RouterLink :to="{name : 'preventiveCareReminder', params: {id : applicationStore.userData.id}}" class="nav-link fw-bolder login-button">Preventive Care Reminder</RouterLink>
+          </li>
+
           <li class="nav-item" v-if="applicationStore.isAuthenticated && !roles.includes('ROLE_ADMIN')">
             <div class="dropdown">
               <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton" data-bs-toggle="dropdown" aria-expanded="false" style="text-align: center">
