@@ -100,6 +100,12 @@ const router = createRouter({
       component: () => import('../views/PreventiveCareReminder.vue'),
       meta: {requiresAuth: true}
     },
+    {
+      path: '/user/:id/preventiveCareReminder/form',
+      name: 'reminderForm',
+      component: () => import('../views/ReminderForm.vue'),
+      meta: {requiresAuth: true}
+    },
   ],
 })
 

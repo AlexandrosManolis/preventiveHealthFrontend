@@ -3,6 +3,7 @@ import { computed, ref, watch } from 'vue'
 import { useRemoteData } from '@/composables/useRemoteData.js'
 import { useRoute, useRouter } from 'vue-router'
 import { useApplicationStore } from '@/stores/application.js'
+import Swal from 'sweetalert2'
 
 const route = useRoute()
 const router = useRouter()
@@ -191,11 +192,20 @@ const onsubmit = async (event) => {
       const { performRequest } = useRemoteData(urlRef, authRef, methodRef, formDataRef);
 
       const response = await performRequest();
-      alert(response.message);
-      return router.push(`/user/${patientId}/appointments`);
+      Swal.fire({
+        title: `Appointment sent successfully, ${response}`,
+        icon: "success"
+      }).then(() => {
+        router.push(`/user/${patientId}/appointments?status=uncompleted`);
+      });
     }catch (error) {
       console.error("Error during request:", error);
-      alert("Something went wrong while submitting the request.");
+      Swal.fire({
+        title: `There was an error. ${error}`,
+        icon: "error"
+      }).then(() => {
+        window.location.reload();
+      });
     }
   }
 };
