@@ -20,6 +20,7 @@ onBeforeMount(() =>{
 <style scoped>
 :global(body) {
   background-color: whitesmoke;
+  font-family: 'Times New Roman', Times, serif;
 }
 
 nav {

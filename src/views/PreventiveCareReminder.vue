@@ -37,6 +37,8 @@ const getDaysUntil = (dateString) => {
 }
 
 const hasData = computed(() => data.value && (data.value.reminderForms?.length > 0 || data.value.appointments?.length > 0))
+
+const reminderType = ref('preventiveCareReminder');
 </script>
 
 <template>
@@ -48,6 +50,12 @@ const hasData = computed(() => data.value && (data.value.reminderForms?.length >
         <i class="bi bi-pencil-square"></i>
         {{ hasData ? 'Add/Edit Reminders' : 'Add New Reminders' }}
       </RouterLink>
+      <div>
+        <select id="reminder" class="dropdown-toggle btn btn-add" v-model="reminderType">
+          <option value="preventiveCareReminder">Preventive Care Reminder</option>
+          <option value="appointmentReminder">Appointment Reminder</option>
+        </select>
+      </div>
     </div>
 
     <!-- Loading state -->
@@ -59,13 +67,11 @@ const hasData = computed(() => data.value && (data.value.reminderForms?.length >
 
     <div v-if="!data || !hasData" class="no-data">
       <p>No reminder forms found. Please add new reminders.</p>
-      <RouterLink :to="{ name: 'reminderForm', params: { id: userIdRef } }" class="btn-add">
-        <i class="bi bi-pencil-square"></i> Add New Reminders
-      </RouterLink>
     </div>
 
+
     <div v-else class="cards-grid">
-      <div v-for="(reminder, index) in data.reminderForms" :key="`reminder-${index}`" class="card">
+      <div v-for="(reminder, index) in data.reminderForms" :key="`reminder-${index}`" class="card" v-if="reminderType === 'preventiveCareReminder'">
         <div class="card-header">
           <span>{{ reminder.specialty }}</span>
           <span class="badge" :class="getDaysUntil(reminder.nextExamDateReminder).status">
@@ -79,11 +85,11 @@ const hasData = computed(() => data.value && (data.value.reminderForms?.length >
           <div class="detail"><strong>Next Check-up:</strong> {{ reminder.nextExamDateReminder }}</div>
         </div>
 
-        <RouterLink class="btn-primary" :to="{name: 'appointments', params: {id: reminder.patientId}, query: {status: 'uncompleted'}}">Make an appointment</RouterLink>
+        <RouterLink class="btn-primary" :to="{name: 'findSpecialist', query: {specialty: reminder.specialty}}">Make an appointment</RouterLink>
       </div>
 
       <!-- Appointment cards -->
-      <div v-for="(appointment, index) in data.appointments" :key="`appt-${index}`" class="card">
+      <div v-for="(appointment, index) in data.appointments" :key="`appt-${index}`" class="card" v-if="reminderType === 'appointmentReminder'">
         <div class="card-header">
           <span class="title">{{ appointment.specialty }}</span>
           <span class="badge" :class="getDaysUntil(appointment.date).status">
@@ -149,7 +155,7 @@ const hasData = computed(() => data.value && (data.value.reminderForms?.length >
 
 .cards-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
   gap: 1.5rem;
   width: 100%;
 }
@@ -158,7 +164,6 @@ const hasData = computed(() => data.value && (data.value.reminderForms?.length >
   background-color: white;
   border-radius: 0.75rem;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-  overflow: hidden;
   transition: transform 0.2s, box-shadow 0.2s;
   display: flex;
   flex-direction: column;
@@ -172,6 +177,7 @@ const hasData = computed(() => data.value && (data.value.reminderForms?.length >
 
 .card-header {
   display: flex;
+  flex-direction: column;
   justify-content: space-between;
   align-items: center;
   padding: 1rem;
@@ -211,7 +217,8 @@ const hasData = computed(() => data.value && (data.value.reminderForms?.length >
 
 .detail {
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
+  gap: 10px;
   color: #475569;
 }
 
@@ -254,11 +261,11 @@ const hasData = computed(() => data.value && (data.value.reminderForms?.length >
   background-color: #e2e8f0;
 }
 
-@media (max-width: 500px) {
-  .cards-grid {
-    grid-template-columns: 1fr;
+@media (max-width: 720px) {
+  .reminder-container {
+    width: 100%;
+    max-width: 1200px;
   }
-
   .header {
     flex-direction: column;
     align-items: flex-start;

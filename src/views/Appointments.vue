@@ -242,7 +242,7 @@ const isDoctor = computed(() => userRole.value.includes('ROLE_DOCTOR'));
     </div>
   </div>
   <div v-else>
-    <h1 style="text-align: center">No appointments found</h1>
+    <h1 style="text-align: center; margin-top: 60px">No appointments found</h1>
   </div>
 
   <div v-if="data && data.length" class="calendar-container">
@@ -252,7 +252,6 @@ const isDoctor = computed(() => userRole.value.includes('ROLE_DOCTOR'));
 </template>
 
 <style scoped>
-
 .btn {
   margin-top: 5px;
   border: none;

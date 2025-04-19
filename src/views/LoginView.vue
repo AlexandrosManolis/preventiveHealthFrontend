@@ -67,66 +67,73 @@ onBeforeMount(() => {
 <template>
   <div class="login-container text-white">
     <h1>Sign In</h1>
+    <div class="dropdown">
+      <text style="margin-right: 10px">Dont have an account? Create here.</text>
+      <button class="btn dropdown-toggle fw-bolder register-button text-white" type="button" id="registerDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+        Register
+      </button>
+      <ul class="dropdown-menu" aria-labelledby="registerDropdown" style="background: whitesmoke">
+        <li class="dropdown-item">
+          <RouterLink :to="{ name: 'patientSignup', query: { userType: 'patient' } }" class="btn btn-secondary">Patient</RouterLink>
+        </li>
+        <li class="dropdown-item">
+          <RouterLink :to="{ name: 'doctorSignup', query: { userType: 'doctor' } }" class="btn btn-secondary">Doctor</RouterLink>
+        </li>
+        <li class="dropdown-item">
+          <RouterLink :to="{ name: 'diagnosticSignup', query: { userType: 'diagnostic' } }" class="btn btn-secondary">Diagnostic Center</RouterLink>
+        </li>
+      </ul>
+    </div>
   </div>
-    <div class="login-card">
+  <div class="login-card">
 
-        <div v-if="loading" class="loading-spinner">
-          <div class="spinner-border" role="status">
-            <span class="visually-hidden">Loading...</span>
-          </div>
-        </div>
+    <div v-if="loading" class="loading-spinner">
+      <div class="spinner-border" role="status">
+        <span class="visually-hidden">Loading...</span>
+      </div>
+    </div>
 
-        <!-- Login form -->
-      <form class="login-form about">
+    <!-- Login form -->
+    <form class="login-form about">
 
-          <div class="mb-2" v-if="authenticationFailed">
-            <div class="alert alert-danger" role="alert">
-              Authentication failed!
-            </div>
-          </div>
-
-          <!-- Username input field -->
-          <div class="mb-2">
-            <label for="usernameFormControl" class="form-label mb-1">Username</label>
-            <input v-model="credentials.username" type="text" class="form-control" id="usernameFormControl" placeholder="Enter your username" />
-          </div>
-
-          <!-- Password input field -->
-          <div class="mb-2">
-            <label for="passwordFormControl" class="form-label mb-1">Password</label>
-            <input v-model="credentials.password" type="password" class="form-control" id="passwordFormControl" placeholder="Enter your password"/>
-          </div>
-
-          <button @click.prevent="onFormSubmit" type="submit" class="btn btn-primary align-items-center">Login</button>
-          <span class="fst-italic" v-if="credentials.username">as {{ credentials.username }}</span>
-
-        </form>
-      <div style="margin-left: 10px"></div>
-        <div class="dropdown">
-          <text>Dont have an account? Create here.</text>
-          <button class="btn dropdown-toggle fw-bolder register-button" type="button" id="registerDropdown" data-bs-toggle="dropdown" aria-expanded="false">
-            Register
-          </button>
-          <ul class="dropdown-menu" aria-labelledby="registerDropdown">
-            <li class="dropdown-item">
-              <RouterLink :to="{ name: 'patientSignup', query: { userType: 'patient' } }" class="text-dark">Patient</RouterLink>
-            </li>
-            <li class="dropdown-item">
-              <RouterLink :to="{ name: 'doctorSignup', query: { userType: 'doctor' } }" class="text-dark">Doctor</RouterLink>
-            </li>
-            <li class="dropdown-item">
-              <RouterLink :to="{ name: 'diagnosticSignup', query: { userType: 'diagnostic' } }" class="text-dark">Diagnostic Center</RouterLink>
-            </li>
-          </ul>
+      <div class="mb-2" v-if="authenticationFailed">
+        <div class="alert alert-danger" role="alert">
+          Authentication failed!
         </div>
       </div>
+
+      <!-- Username input field -->
+      <div class="mb-2">
+        <label for="usernameFormControl" class="form-label mb-1">Username</label>
+        <input v-model="credentials.username" type="text" class="form-control" id="usernameFormControl" placeholder="Enter your username" />
+      </div>
+
+      <!-- Password input field -->
+      <div class="mb-2">
+        <label for="passwordFormControl" class="form-label mb-1">Password</label>
+        <input v-model="credentials.password" type="password" class="form-control" id="passwordFormControl" placeholder="Enter your password"/>
+      </div>
+
+      <button @click.prevent="onFormSubmit" type="submit" class="btn btn-primary align-items-center">Login</button>
+      <span class="fst-italic" v-if="credentials.username">as {{ credentials.username }}</span>
+
+    </form>
+  </div>
 </template>
 
 <style>
+.btn-secondary{
+  transition: transform 0.3s;
+}
+
+.btn-secondary:hover{
+    transform: translateY(-2px);
+}
 
 .login-container {
   display: flex;
-  justify-content: center;
+  flex-direction: column;
+  justify-content: space-evenly;
   align-items: center;
   min-height: 40vh;
   box-sizing: border-box;

@@ -109,8 +109,9 @@ onMounted(()=>{
         <span v-for="star in 5" :key="'display-'+star" class="display-star" style="margin-left: 2px; margin-right: 2px">
         <i class="bi" :class="[star <= ratingValue.averageSpecialistRating ? 'bi-star-fill' : 'bi-star']"></i>
       </span>
-        <span class="score-value" style="margin-left: 10px">Your rating is <b>{{ ratingValue.averageSpecialistRating }}/5</b></span>
+        <span class="score-value" style="margin-left: 10px"><b>{{ ratingValue.averageSpecialistRating }}/5</b></span>
       </b>
+      <RouterLink :to="{name: 'allRatings', params: {id: userIdRef}}" class="btn btn-light" style="margin-left: 10px; background: transparent;">All Ratings</RouterLink>
     </p>
 
     <div class="chart-container">
@@ -136,12 +137,16 @@ onMounted(()=>{
 </template>
 
 <style scoped>
-.doctor-score-display{
-  margin-left: 10px ;
+.doctor-score-display {
   display: flex;
   flex-direction: row;
   font-size: x-large;
   justify-content: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+  padding: 0 10px;
+  margin-top: 60px;
 }
 
 .chart-container {
@@ -212,6 +217,12 @@ h2 {
 }
 
 @media (max-width: 768px) {
+  .doctor-score-display {
+    font-size: large;
+    width: auto;
+    margin-top: 60px;
+  }
+
   .chart-container {
     padding: 16px;
     border-radius: 12px;
@@ -228,30 +239,6 @@ h2 {
   }
   .g-chart{
     width: 100% !important;
-  }
-}
-
-@media (max-width: 480px) {
-  .chart-container {
-    padding: 12px;
-  }
-
-  h2 {
-    font-size: 1.25rem;
-  }
-
-  .year-selector {
-    padding: 2px;
-  }
-
-  .year-btn {
-    width: 32px;
-    height: 32px;
-  }
-
-  .year-display {
-    font-size: 1rem;
-    min-width: 60px;
   }
 }
 </style>

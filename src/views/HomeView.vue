@@ -109,8 +109,8 @@ onMounted(async () => {
               <circle cx="100" cy="0" r="5" fill="blue"></circle>
               <circle cx="200" cy="500" r="5" fill="blue"></circle>
             </svg>
-
           </div>
+
           <RouterLink :to="{name : 'userProfile', params: {id: applicationStore.userData.id}}" class="card btn fw-bolder btn-dark"
           v-if="applicationStore.isAuthenticated">
               <div class="card-content">
@@ -118,6 +118,7 @@ onMounted(async () => {
                 <p>Manage your profile and personal information.</p>
               </div>
           </RouterLink>
+
           <RouterLink :to="{name : 'findSpecialist'}" class="card btn fw-bolder btn-dark"
           v-if="userRole.includes('ROLE_PATIENT') || !applicationStore.isAuthenticated">
             <div class="card-content">
@@ -125,6 +126,7 @@ onMounted(async () => {
               <p>Search for healthcare specialists in your area.</p>
             </div>
           </RouterLink>
+
           <RouterLink :to="{name : 'appointments', params: {id: applicationStore.userData.id}, query: {status: 'completed'}}" class="card btn fw-bolder btn-dark"
           v-if="applicationStore.isAuthenticated && !pendingUserRequest.exists && !rejectedUserRequest.exists">
             <div class="card-content">
@@ -132,6 +134,7 @@ onMounted(async () => {
               <p>Check your completed appointments.</p>
             </div>
           </RouterLink>
+
           <RouterLink :to="{name : 'appointments', params: {id: applicationStore.userData.id}, query: {status: 'uncompleted'}}" class="card btn fw-bolder btn-dark"
                       v-if="applicationStore.isAuthenticated && !pendingUserRequest.exists && !rejectedUserRequest.exists">
             <div class="card-content">
@@ -139,13 +142,21 @@ onMounted(async () => {
               <p>Check your pending or cancelled appointments.</p>
             </div>
           </RouterLink>
+
           <RouterLink :to="{name : 'preventiveCareReminder', params: {id : applicationStore.userData.id}}" v-if="userRole.includes('ROLE_PATIENT')" class="card btn fw-bolder btn-dark">
             <div class="card-content">
               <h2>Preventive Care Reminder</h2>
               <p>Stay on top of your health with reminders to schedule your preventive check-ups.</p>
             </div>
-
           </RouterLink>
+
+          <RouterLink :to="{name : 'fileSharing', params: {id : applicationStore.userData.id}}" v-if="userRole.includes('ROLE_PATIENT')" class="card btn fw-bolder btn-dark">
+            <div class="card-content">
+              <h2>File Sharing</h2>
+              <p>Find every exam you want in one page.</p>
+            </div>
+          </RouterLink>
+
           <RouterLink :to="{name : 'appointmentRequests', params: {id: applicationStore.userData.id}}" class="card btn fw-bolder btn-dark"
           v-if="(userRole.includes('ROLE_DOCTOR') || userRole.includes('ROLE_DIAGNOSTIC')) && !pendingUserRequest.exists && !rejectedUserRequest.exists">
             <div class="card-content">
