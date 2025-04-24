@@ -52,7 +52,12 @@ export function useRemoteData(urlRef, authRef, methodRef = ref("GET"), bodyRef =
           const contentType = response.headers.get("Content-Type");
 
           // Handle different content types
-          if (contentType?.includes("application/pdf")) {
+          if (contentType?.includes("image/webp")) {
+            const blob = await response.blob();
+            const imageUrl = URL.createObjectURL(blob);
+            data.value = imageUrl;
+            return imageUrl;
+          }else if(contentType?.includes("application/pdf")) {
             return response.blob();
           } else if (contentType?.includes("application/json")) {
             return response.json();

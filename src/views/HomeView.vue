@@ -18,13 +18,16 @@ const username = computed(() =>
   applicationStore.isAuthenticated ? applicationStore.userData.username : null,
 )
 
+const urlRef = ref(`${backendEnvVar}/api/user/get-logo`)
+const authRef = ref(false)
+
+const { data, performRequest} = useRemoteData(urlRef, authRef)
+
 const checkRequestExistence = async (username, status) => {
-  // Define URL and other references
   const urlRef = ref(`${backendEnvVar}/api/register-request/${status}?username=${username}`)
   const authRef = ref(true)
-  const methodRef = ref('GET')
 
-  const { performRequest} = useRemoteData(urlRef, authRef, methodRef)
+  const { performRequest} = useRemoteData(urlRef, authRef)
 
   try {
     const responseData = await performRequest()
@@ -43,6 +46,8 @@ const checkRequestExistence = async (username, status) => {
 const lines = ref([]);
 
 onMounted(async () => {
+  performRequest();
+
   if(userRole.value.includes('ROLE_ADMIN')){
     router.replace({name: 'adminHome'});
     return;
@@ -79,7 +84,7 @@ onMounted(async () => {
 <template>
   <div style="display:flex; flex-direction: column" v-if="!userRole.includes('ROLE_ADMIN')">
     <div class="overlay" style="text-align: center">
-      <img src="../assets/home-image.webp" alt="Preventive Health App Design"/>
+      <img v-if="data" :src="data" alt="Preventive Health App Design"/>
       <h1 style="font-size: xxx-large; width: 100%">Welcome to Preventive Health</h1>
       <h5>Your preventive health care is the most important success for us</h5>
       <span style="margin-top: 15px"></span>
