@@ -85,12 +85,22 @@ onMounted(async () => {
   <div style="display:flex; flex-direction: column" v-if="!userRole.includes('ROLE_ADMIN')">
     <div class="overlay" style="text-align: center">
       <img v-if="data" :src="data" alt="Preventive Health App Design"/>
-      <h1 style="font-size: xxx-large; width: 100%">Welcome to Preventive Health</h1>
-      <h5>Your preventive health care is the most important success for us</h5>
-      <span style="margin-top: 15px"></span>
-      <div class="scroll">
-        <h5>Scroll Down</h5>
-        <h1><i class="bi bi-chevron-double-down bg"></i></h1>
+
+      <div style="margin-top: 60px">
+        <!-- Loading state -->
+        <div v-if="!data" class="loading">
+          <div class="spinner" role="status">
+            <span class="visually-hidden">Loading image. Connect with server...</span>
+          </div>
+        </div>
+
+        <h1 style="font-size: xxx-large; width: 100%">Welcome to Preventive Health</h1>
+        <h5>Your preventive health care is the most important success for us</h5>
+        <span style="margin-top: 15px"></span>
+        <div class="scroll">
+          <h5>Scroll Down</h5>
+          <h1><i class="bi bi-chevron-double-down bg"></i></h1>
+        </div>
       </div>
     </div>
     <!-- Main Container -->
@@ -155,7 +165,7 @@ onMounted(async () => {
             </div>
           </RouterLink>
 
-          <RouterLink :to="{name : 'fileSharing', params: {id : applicationStore.userData.id}}" v-if="userRole.includes('ROLE_PATIENT')" class="card btn fw-bolder btn-dark">
+          <RouterLink :to="{name : 'fileSharing', params: {id : applicationStore.userData.id}}" v-if="applicationStore.isAuthenticated && !userRole.includes('ROLE_ADMIN')" class="card btn fw-bolder btn-dark">
             <div class="card-content">
               <h2>File Sharing</h2>
               <p>Find every exam you want in one page.</p>
@@ -183,6 +193,25 @@ onMounted(async () => {
 </template>
 
 <style scoped>
+.loading {
+  display: flex;
+  justify-content: center;
+  padding: 2rem;
+}
+
+.spinner {
+  width: 2rem;
+  height: 2rem;
+  border: 0.25rem solid rgba(59, 130, 246, 0.3);
+  border-top-color: rgb(59, 130, 246);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
 i {
   display: block;
   animation: moveUpDown 2s linear infinite;

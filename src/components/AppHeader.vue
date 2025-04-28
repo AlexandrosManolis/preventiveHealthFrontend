@@ -64,7 +64,7 @@ onBeforeUnmount(() => {
             <RouterLink :to="{name : 'preventiveCareReminder', params: {id : applicationStore.userData.id}}" class="nav-link fw-bolder login-button">Preventive Care Reminder</RouterLink>
           </li>
 
-          <li class="nav-item" v-if="roles.includes('ROLE_PATIENT')">
+          <li class="nav-item" v-if="applicationStore.isAuthenticated && !roles.includes('ROLE_ADMIN')">
             <RouterLink :to="{name : 'fileSharing', params: {id : applicationStore.userData.id}}" class="nav-link fw-bolder login-button">File Sharing</RouterLink>
           </li>
 

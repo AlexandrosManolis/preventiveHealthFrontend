@@ -1,5 +1,6 @@
 import { ref } from 'vue';
 import { useApplicationStore } from '@/stores/application.js';
+import extraOptions from 'jsdom/lib/jsdom/living/fetch/header-list.js'
 
 const store = useApplicationStore();
 
@@ -13,7 +14,8 @@ export function useRemoteData(urlRef, authRef, methodRef = ref("GET"), bodyRef =
     return new Promise((resolve, reject) => {
       loading.value = true;
       const headers = {
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
+        ...extraOptions.headers
       };
 
       if (authRef.value === true) {
@@ -25,7 +27,9 @@ export function useRemoteData(urlRef, authRef, methodRef = ref("GET"), bodyRef =
       };
 
       if (bodyRef.value !== null) {
-        if (bodyRef.value && 'medicalFile' in bodyRef.value && bodyRef.value.medicalFile instanceof File) {
+        const isPlainObject = typeof bodyRef.value === 'object' && !Array.isArray(bodyRef.value);
+
+        if (isPlainObject && 'medicalFile' in bodyRef.value && bodyRef.value.medicalFile instanceof File) {
           const formData = new FormData();
           Object.keys(bodyRef.value).forEach((key) => {
             if (key === "medicalFile" && bodyRef.value[key]) {

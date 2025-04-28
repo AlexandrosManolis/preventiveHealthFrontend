@@ -6,6 +6,9 @@ import Calendar from '@/views/Calendar.vue'
 import { useApplicationStore } from '@/stores/application.js'
 import Swal from 'sweetalert2'
 import index from 'v-calendar'
+import PdfView from '@/views/PdfView.vue'
+import PdfDownloadView from '@/views/PdfDownloadView.vue'
+import { da } from 'date-fns/locale'
 
 const route = useRoute()
 const router = useRouter()
@@ -155,7 +158,10 @@ const validatePdf = (event) =>{
   }
 
   if(file && file.type !== 'application/pdf'){
-    alert('Only pdf allowed');
+    Swal.fire({
+      title: "Only pdf allowed",
+      icon: 'error'
+    });
     event.target.value = '';
     formDataRef.value.medicalFile = null;
     return;
@@ -204,37 +210,9 @@ const onSubmit = (event)=>{
       text: err.message || "Something went wrong!"
     });
   }
-
 }
 
-const downloadFile = async () => {
-  const authRef = ref(true);
-  const urlRef = ref(`${backendEnvVar}/api/appointment/${userIdRef.value}/appointments/${appointmentIdRef.value}/details/examFile`);
-  const { performRequest } = useRemoteData(urlRef, authRef);
-
-  try {
-    const blob = await performRequest();
-    if (blob instanceof Blob) {
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement("a");
-      link.href = url;
-      link.download = data.value.medicalExam.fileName || "download.pdf";
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      URL.revokeObjectURL(url);
-    } else {
-      throw new Error("Invalid response, expected a PDF file.");
-    }
-  } catch (error) {
-    console.error("Error downloading file:", error);
-    Swal.fire({
-      title: "Download failed",
-      icon: "error",
-      text: error.message || "An error occurred while downloading the file.",
-    });
-  }
-};
+const showPdfView = ref(false);
 </script>
 
 <template>
@@ -279,8 +257,7 @@ const downloadFile = async () => {
           <td>{{ data.appointmentCause }}</td>
         </tr>
         <tr v-if="data.appointmentStatus === 'COMPLETED'">
-          <th>Medical file Needed? <span v-if="data.medicalFileNeeded === 'YES'">/ Download Medical file</span></th>
-        <!--ADD FILE FOR PATIENT TO DOWNLOAD-->
+          <th>Medical file Needed? <span v-if="data.medicalFileNeeded === 'YES'">/ Medical file</span></th>
           <td>{{ data.medicalFileNeeded }}
             <div v-if="data.medicalFileNeeded === 'YES' && !userRole.includes('ROLE_PATIENT') && !data.medicalExam" style="display: flex; flex-direction: row; align-items: center; gap: 5px;">
               <span>/</span>
@@ -294,9 +271,9 @@ const downloadFile = async () => {
             </div>
             <div v-if="data.medicalFileNeeded === 'YES' && data.medicalExam">
               / <button class="btn btn-secondary">
-                  <a :href="`${backendEnvVar}/api/appointment/${userIdRef}/appointments/${appointmentIdRef}/details/examFile`"
-                  target="_blank" class="bi bi-download text-white" @click.prevent="downloadFile" style="background: none"> Download</a>
+                  <span class="bi bi-eye text-white" @click="showPdfView = !showPdfView"> View PDF</span>
                 </button>
+              <PdfDownloadView :id="data.medicalExam.id" v-if="userRole.includes('ROLE_PATIENT')"/>
             </div>
           </td>
         </tr>
@@ -404,6 +381,7 @@ const downloadFile = async () => {
       <Calendar :data="data" :specialty="data.specialty" calendar-type="changeAppointment" v-if="userRole.includes('ROLE_PATIENT') && !data.appointmentStatus === 'COMPLETED'"/>
     </div>
   </div>
+  <PdfView :appointmentId="data.id" v-if="showPdfView"/>
 </template>
 
 <style scoped>
@@ -464,11 +442,5 @@ input[type="radio"]:checked + label{
 .table-container {
   margin-top: 60px;
   padding: 20px;
-}
-
-@media (max-width: 1200px) {
-  .appointment-table, .appointment-table tbody{
-    width: 100%;
-  }
 }
 </style>
