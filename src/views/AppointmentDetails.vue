@@ -381,7 +381,7 @@ const showPdfView = ref(false);
       <Calendar :data="data" :specialty="data.specialty" calendar-type="changeAppointment" v-if="userRole.includes('ROLE_PATIENT') && !data.appointmentStatus === 'COMPLETED'"/>
     </div>
   </div>
-  <PdfView :appointmentId="data.id" v-if="showPdfView"/>
+  <PdfView :appointment_id="data.id" v-if="showPdfView"/>
 </template>
 
 <style scoped>
