@@ -71,66 +71,63 @@ const onSubmit = async (event)=>{
 
 <template>
   <div class="doctor-score-container" style="display: flex; flex-direction: column; align-items: flex-start;" v-if="data">
-
-    <div class="doctor-score-display" style="display: flex; flex-direction: row; align-items: center;">
-      <b style="display: flex; flex-direction: row; align-items: center;">
+    <div class="doctor-score-display" style="display: flex; flex-direction: row; align-items: center; position: relative;">
+      <button class="btn" style="display: flex; flex-direction: row; align-items: center;background: none; border: none" @click="handleDropdown(index)">
         Rating:
         <span style="display: flex; flex-direction: row; gap: 4px; margin-left: 8px;">
-        <span v-for="star in 5" :key="'display-'+star" class="display-star">
-          <i class="bi" :class="[star <= data.averageSpecialistRating ? 'bi-star-fill' : 'bi-star']"></i>
+          <span v-for="star in 5" :key="'display-'+star" class="display-star">
+            <i class="bi" :class="[star <= data.averageSpecialistRating ? 'bi-star-fill' : 'bi-star']"></i>
+          </span>
         </span>
-      </span>
         <span class="score-value" style="margin-left: 8px;">{{ data.averageSpecialistRating }}</span>
-      </b>
-    </div>
+      </button>
 
-    <div v-if="data.ratingExists && userRole.includes('ROLE_PATIENT')" style="margin-top: 10px;">
-      <span>You have already rated this specialist with <b>{{ data.patientRating }}/5</b></span>
-    </div>
+      <!-- Rating dropdown positioned absolutely -->
+      <div v-if="data && dropdownIsOpen[index]" class="doctor-rating-container dropdown-item">
+        <div v-if="userRole.includes('ROLE_PATIENT') && !data.ratingExists">
 
-  </div>
-
-  <div style="margin-left: 10px" v-if="data && userRole.includes('ROLE_PATIENT') && !data.ratingExists">
-    <button class="btn btn-secondary" @click="handleDropdown(index)" style="width: max-content;height: auto">Rate your experience</button>
-
-    <div class="doctor-rating-container dropdown-item" v-if="dropdownIsOpen[index]">
-      <div class="stars-container">
-        <div class="stars">
-              <span v-for="star in 5" :key="star" class="star-icon" :class="[star <= rating ? 'active' : '',star <= hoveredRating && hoveredRating > 0 ? 'hovered' : '']" @click="rating = star; formDataRef.rating = star" @mouseenter="hoveredRating = star" @mouseleave="hoveredRating = 0">
-                <i class="bi bi-star-fill"></i>
-              </span>
+          <div class="stars-container">
+            <div class="stars">
+            <span v-for="star in 5" :key="star" class="star-icon" :class="[star <= rating ? 'active' : '',star <= hoveredRating && hoveredRating > 0 ? 'hovered' : '']"
+                  @click="rating = star; formDataRef.rating = star" @mouseenter="hoveredRating = star" @mouseleave="hoveredRating = 0">
+              <i class="bi bi-star-fill"></i>
+            </span>
+            </div>
+            <span class="rating-label" v-if="rating > 0">{{ getRatingLabel(rating) }}</span>
+          </div>
+          <div class="feedback-section">
+            <textarea class="form-control feedback-input" rows="3" placeholder="Share your feedback about this doctor..." v-model="formDataRef.ratingDescription"></textarea>
+          </div>
+          <div class="action-section">
+            <button class="btn submit-button" :disabled="!rating" @click="onSubmit">Submit Rating</button>
+          </div>
         </div>
-        <span class="rating-label" v-if="rating > 0">{{ getRatingLabel(rating) }}</span>
-      </div>
-      <div class="feedback-section">
-        <textarea class="form-control feedback-input" rows="3" placeholder="Share your feedback about this doctor..." v-model="formDataRef.ratingDescription"></textarea>
-      </div>
-      <div class="action-section">
-        <button class="btn submit-button" :disabled="!rating" @click="onSubmit">
-          Submit Rating
-        </button>
+        <div v-if="data.ratingExists && userRole.includes('ROLE_PATIENT')" class="existing-rating-message" style="text-wrap: wrap;font-size: 16px; text-align: center">
+          <span><b>You have already rated this specialist with {{ data.patientRating }}/5</b></span>
+        </div>
+        <RouterLink :to="{name: 'allRatings', params: {id: userIdRef}}" class="btn btn-light" style="margin-top: 10px; display: flex;align-items: center; background: transparent;justify-content: center">All Ratings</RouterLink>
       </div>
     </div>
   </div>
 </template>
 
 <style scoped>
+.doctor-score-container {
+  position: relative;
+}
+
 .doctor-rating-container {
-  flex-grow: 1;
+  position: absolute;
+  top: 100%;
+  left: 0;
+  z-index: 1000;
   background: white;
   border-radius: 16px;
   padding: 2rem;
   box-shadow: 0 8px 24px rgba(149, 157, 165, 0.1);
-  max-width: 500px;
-  margin: 60px auto;
-}
-
-.rating-title {
-  color: #2c3e50;
-  font-weight: 600;
-  margin-bottom: 1.5rem;
-  text-align: center;
-  font-size: 1.5rem;
+  width: 200px;
+  margin-top: 10px;
+  max-width: 100%;
 }
 
 .stars-container {
@@ -218,6 +215,7 @@ const onSubmit = async (event)=>{
 
 @media (max-width: 768px) {
   .doctor-rating-container {
+    width: 100%;
     padding: 1.5rem;
   }
 
@@ -226,4 +224,3 @@ const onSubmit = async (event)=>{
   }
 }
 </style>
-

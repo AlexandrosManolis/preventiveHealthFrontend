@@ -18,13 +18,16 @@ const username = computed(() =>
   applicationStore.isAuthenticated ? applicationStore.userData.username : null,
 )
 
+const urlRef = ref(`${backendEnvVar}/api/user/get-logo`)
+const authRef = ref(false)
+
+const { data, performRequest} = useRemoteData(urlRef, authRef)
+
 const checkRequestExistence = async (username, status) => {
-  // Define URL and other references
   const urlRef = ref(`${backendEnvVar}/api/register-request/${status}?username=${username}`)
   const authRef = ref(true)
-  const methodRef = ref('GET')
 
-  const { performRequest} = useRemoteData(urlRef, authRef, methodRef)
+  const { performRequest} = useRemoteData(urlRef, authRef)
 
   try {
     const responseData = await performRequest()
@@ -43,6 +46,8 @@ const checkRequestExistence = async (username, status) => {
 const lines = ref([]);
 
 onMounted(async () => {
+  performRequest();
+
   if(userRole.value.includes('ROLE_ADMIN')){
     router.replace({name: 'adminHome'});
     return;
@@ -79,13 +84,23 @@ onMounted(async () => {
 <template>
   <div style="display:flex; flex-direction: column" v-if="!userRole.includes('ROLE_ADMIN')">
     <div class="overlay" style="text-align: center">
-      <img src="../assets/home-image.webp" alt="Preventive Health App Design"/>
-      <h1 style="font-size: xxx-large; width: 100%">Welcome to Preventive Health</h1>
-      <h5>Your preventive health care is the most important success for us</h5>
-      <span style="margin-top: 15px"></span>
-      <div class="scroll">
-        <h5>Scroll Down</h5>
-        <h1><i class="bi bi-chevron-double-down bg"></i></h1>
+      <img v-if="data" :src="data" alt="Preventive Health App Design"/>
+
+      <div style="margin-top: 60px">
+        <!-- Loading state -->
+        <div v-if="!data" class="loading">
+          <div class="spinner" role="status">
+            <span class="visually-hidden">Loading image. Connect with server...</span>
+          </div>
+        </div>
+
+        <h1 style="font-size: xxx-large; width: 100%">Welcome to Preventive Health</h1>
+        <h5>Your preventive health care is the most important success for us</h5>
+        <span style="margin-top: 15px"></span>
+        <div class="scroll">
+          <h5>Scroll Down</h5>
+          <h1><i class="bi bi-chevron-double-down bg"></i></h1>
+        </div>
       </div>
     </div>
     <!-- Main Container -->
@@ -109,8 +124,8 @@ onMounted(async () => {
               <circle cx="100" cy="0" r="5" fill="blue"></circle>
               <circle cx="200" cy="500" r="5" fill="blue"></circle>
             </svg>
-
           </div>
+
           <RouterLink :to="{name : 'userProfile', params: {id: applicationStore.userData.id}}" class="card btn fw-bolder btn-dark"
           v-if="applicationStore.isAuthenticated">
               <div class="card-content">
@@ -118,6 +133,7 @@ onMounted(async () => {
                 <p>Manage your profile and personal information.</p>
               </div>
           </RouterLink>
+
           <RouterLink :to="{name : 'findSpecialist'}" class="card btn fw-bolder btn-dark"
           v-if="userRole.includes('ROLE_PATIENT') || !applicationStore.isAuthenticated">
             <div class="card-content">
@@ -125,6 +141,7 @@ onMounted(async () => {
               <p>Search for healthcare specialists in your area.</p>
             </div>
           </RouterLink>
+
           <RouterLink :to="{name : 'appointments', params: {id: applicationStore.userData.id}, query: {status: 'completed'}}" class="card btn fw-bolder btn-dark"
           v-if="applicationStore.isAuthenticated && !pendingUserRequest.exists && !rejectedUserRequest.exists">
             <div class="card-content">
@@ -132,6 +149,7 @@ onMounted(async () => {
               <p>Check your completed appointments.</p>
             </div>
           </RouterLink>
+
           <RouterLink :to="{name : 'appointments', params: {id: applicationStore.userData.id}, query: {status: 'uncompleted'}}" class="card btn fw-bolder btn-dark"
                       v-if="applicationStore.isAuthenticated && !pendingUserRequest.exists && !rejectedUserRequest.exists">
             <div class="card-content">
@@ -144,8 +162,15 @@ onMounted(async () => {
               <h2>Preventive Care Reminder</h2>
               <p>Stay on top of your health with reminders to schedule your preventive check-ups.</p>
             </div>
-
           </RouterLink>
+
+          <RouterLink :to="{name : 'fileSharing', params: {id : applicationStore.userData.id}}" v-if="applicationStore.isAuthenticated && !userRole.includes('ROLE_ADMIN')" class="card btn fw-bolder btn-dark">
+            <div class="card-content">
+              <h2>File Sharing</h2>
+              <p>Find every exam you want in one page.</p>
+            </div>
+          </RouterLink>
+
           <RouterLink :to="{name : 'appointmentRequests', params: {id: applicationStore.userData.id}}" class="card btn fw-bolder btn-dark"
           v-if="(userRole.includes('ROLE_DOCTOR') || userRole.includes('ROLE_DIAGNOSTIC')) && !pendingUserRequest.exists && !rejectedUserRequest.exists">
             <div class="card-content">
@@ -167,6 +192,25 @@ onMounted(async () => {
 </template>
 
 <style scoped>
+.loading {
+  display: flex;
+  justify-content: center;
+  padding: 2rem;
+}
+
+.spinner {
+  width: 2rem;
+  height: 2rem;
+  border: 0.25rem solid rgba(59, 130, 246, 0.3);
+  border-top-color: rgb(59, 130, 246);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
 i {
   display: block;
   animation: moveUpDown 2s linear infinite;

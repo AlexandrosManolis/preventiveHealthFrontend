@@ -106,6 +106,18 @@ const router = createRouter({
       component: () => import('../views/ReminderForm.vue'),
       meta: {requiresAuth: true}
     },
+    {
+      path: '/specialist/:id/ratings',
+      name: 'allRatings',
+      component: () => import('../views/AllRatings.vue'),
+      meta: {requiresAuth: false}
+    },
+    {
+      path: '/:id/files',
+      name: 'fileSharing',
+      component: () => import('../views/FileSharing.vue'),
+      meta: {requiresAuth: false}
+    },
   ],
 })
 

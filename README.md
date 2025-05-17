@@ -1,41 +1,83 @@
-# preventiveHealthFrontend
+# Preventive Health Frontend
 
-This template should help get you started developing with Vue 3 in Vite.
+A comprehensive application designed to help users track and manage their health history and preventive care measures and make appointments with one tap.
 
-## Recommended IDE Setup
+# Overview
 
-[VSCode](https://code.visualstudio.com/) + [Volar](https://marketplace.visualstudio.com/items?itemName=Vue.volar) (and disable Vetur).
+Preventive Health is a platform focused on empowering users to take a proactive approach to their health. The application provides reminders for preventive screenings and check-ups, and offers personalized health recommendations based on user profiles.
 
-## Customize configuration
+# Features
 
-See [Vite Configuration Reference](https://vite.dev/config/).
+Preventive Care Calendar: Schedule and receive reminders for preventive examinations
+Personalized Recommendations: Get health reminder advice tailored to your age, gender, and health profile
+Medical Records Management: Store and access your medical history securely. Share your medical history with other doctors(readOnly)
+Find specialists: Find specialists in different cities and their ratings. Make an appointment fast and easy.
 
-## Project Setup
+## 🚀 Getting Started
 
-```sh
+### Prerequisites
+
+- Node.js (v16.0.0 or later)
+- npm (v8.0.0 or later)
+
+### Installation
+
+Clone the repository and install dependencies:
+
+```bash
+git clone https://github.com/yourusername/preventiveHealthFrontend.git
+cd preventiveHealthFrontend
 npm install
 ```
 
-### Compile and Hot-Reload for Development
+## 💻 Development
 
-```sh
+### Start Development Server
+
+Run the development server with hot-reload:
+
+```bash
 npm run dev
 ```
 
-### Compile and Minify for Production
+The application will be available at `http://localhost:5173/` by default.
 
-```sh
+### Build for Production
+
+Compile and minify for production deployment:
+
+```bash
 npm run build
 ```
 
-### Run Unit Tests with [Vitest](https://vitest.dev/)
+The built files will be in the `dist` directory.
 
-```sh
+## 🧪 Testing
+
+### Run Unit Tests
+
+Execute unit tests with [Vitest](https://vitest.dev/):
+
+```bash
 npm run test:unit
 ```
 
-### Lint with [ESLint](https://eslint.org/)
+### Linting
 
-```sh
+Lint your code with [ESLint](https://eslint.org/):
+
+```bash
 npm run lint
 ```
+
+## 👥 Test Users
+
+The database comes pre-configured with the following test accounts for development and testing:
+
+| Username | Role    
+|----------|---------
+| `user1`  | Patient 
+| `user2`  | Doctor  
+| `admin`  | Admin   
+
+These accounts can be used for testing different access levels and features without needing to create new accounts.

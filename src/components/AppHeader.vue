@@ -65,14 +65,18 @@ onBeforeUnmount(() => {
           </li>
 
           <li class="nav-item" v-if="applicationStore.isAuthenticated && !roles.includes('ROLE_ADMIN')">
+            <RouterLink :to="{name : 'fileSharing', params: {id : applicationStore.userData.id}}" class="nav-link fw-bolder login-button">File Sharing</RouterLink>
+          </li>
+
+          <li class="nav-item" v-if="applicationStore.isAuthenticated && !roles.includes('ROLE_ADMIN')">
             <div class="dropdown">
-              <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton" data-bs-toggle="dropdown" aria-expanded="false" style="text-align: center">
+              <button class="btn dropdown-toggle fw-bolder" type="button" id="dropdownMenuButton" data-bs-toggle="dropdown" aria-expanded="false" style="text-align: center; border: none; background: none">
                 Appointments
               </button>
               <ul class="dropdown-menu">
-                <RouterLink :to="{name : 'appointments', params: {id: applicationStore.userData.id}, query: {status: 'completed'}}" class="btn login-button appointment-item">Medical Record</RouterLink>
-                <RouterLink :to="{name : 'appointments', params: {id: applicationStore.userData.id}, query: {status: 'uncompleted'}}" class="btn login-button appointment-item">Uncompleted Appointments</RouterLink>
-                <RouterLink :to="{name : 'appointmentRequests', params: {id: applicationStore.userData.id}}" class="btn login-button appointment-item" v-if="(roles.includes('ROLE_DOCTOR') || roles.includes('ROLE_DIAGNOSTIC'))">
+                <RouterLink :to="{name : 'appointments', params: {id: applicationStore.userData.id}, query: {status: 'completed'}}" class="btn appointment-item">Medical Record</RouterLink>
+                <RouterLink :to="{name : 'appointments', params: {id: applicationStore.userData.id}, query: {status: 'uncompleted'}}" class="btn appointment-item">Uncompleted Appointments</RouterLink>
+                <RouterLink :to="{name : 'appointmentRequests', params: {id: applicationStore.userData.id}}" class="btn appointment-item" v-if="(roles.includes('ROLE_DOCTOR') || roles.includes('ROLE_DIAGNOSTIC'))">
                   Appointment Requests
                 </RouterLink>
               </ul>
@@ -88,9 +92,8 @@ onBeforeUnmount(() => {
               <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton" style="text-align: center">
                 <li class="dropdown-item disabled text-dark">{{ username }}</li>
                 <li class="dropdown-item disabled text-dark" v-for="role in roles" :key="role">{{ role }}</li>
-                <RouterLink :to="{name : 'userProfile', params: {id: applicationStore.userData.id}}" class="btn login-button profile" v-if="applicationStore.isAuthenticated">Profile</RouterLink>
-                <RouterLink :to="{name : 'specialistStats',params: {id: applicationStore.userData.id}}" class="btn login-button profile" style="margin-top: 5px" v-if="roles.includes('ROLE_DOCTOR') || roles.includes('ROLE_DIAGNOSTIC')">Stats</RouterLink>
-
+                <RouterLink :to="{name : 'userProfile', params: {id: applicationStore.userData.id}}" class="btn profile" v-if="applicationStore.isAuthenticated">Profile</RouterLink>
+                <RouterLink :to="{name : 'specialistStats',params: {id: applicationStore.userData.id}}" class="btn profile" style="margin-top: 5px" v-if="roles.includes('ROLE_DOCTOR') || roles.includes('ROLE_DIAGNOSTIC')">Stats</RouterLink>
 
                 <li class="dropdown-divider"></li>
                 <RouterLink :to="{ name: 'logout' }" class="nav-link text-dark">Logout</RouterLink>
@@ -137,6 +140,16 @@ onBeforeUnmount(() => {
 
 .login-button {
   color: black;
+  text-decoration: none;
+  transition: all 0.3s ease;
+  background-color: transparent !important;
+}
+
+.login-button:hover {
+  text-decoration: underline;
+  text-underline-offset: 10px;
+  text-decoration-color: whitesmoke;
+  text-decoration-thickness: 2px;
 }
 
 .navbar {
@@ -211,7 +224,7 @@ body {
   .nav-pills {
     display: flex;
     flex-direction: row; /* Keep items in a row */
-    flex-wrap: nowrap; /* Prevent items from wrapping */
+    flex-wrap: wrap; /* Prevent items from wrapping */
   }
 
   .nav-item {

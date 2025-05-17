@@ -242,10 +242,10 @@ const capitalize = (str) => str.charAt(0).toUpperCase() + str.slice(1)
 const selectSpecialties= ref([]);
 
 onMounted(async ()=>{
-  const response = await fetch(`${backendEnvVar}/api/user/specialties`);
+  const response = await fetch(`${backendEnvVar}/api/user/allSpecialties`);
   if(response.ok){
     const data = await response.json();
-    selectSpecialties.value = data.map(item => item.name);
+    selectSpecialties.value = data.map(item => item.specialty);
   }else {
     console.error('Error fetching specialties:', response.statusText);
   }
