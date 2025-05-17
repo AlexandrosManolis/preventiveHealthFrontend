@@ -157,7 +157,6 @@ onMounted(async () => {
               <p>Check your pending or cancelled appointments.</p>
             </div>
           </RouterLink>
-
           <RouterLink :to="{name : 'preventiveCareReminder', params: {id : applicationStore.userData.id}}" v-if="userRole.includes('ROLE_PATIENT')" class="card btn fw-bolder btn-dark">
             <div class="card-content">
               <h2>Preventive Care Reminder</h2>

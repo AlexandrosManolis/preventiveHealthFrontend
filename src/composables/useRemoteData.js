@@ -68,6 +68,22 @@ export function useRemoteData(urlRef, authRef, methodRef = ref("GET"), bodyRef =
           } else {
             throw new Error("Unexpected response type: " + contentType);
           }
+
+          const contentType = response.headers.get("Content-Type");
+
+          // Handle different content types
+          if (contentType?.includes("application/pdf")) {
+            return response.blob();
+          } else if (contentType?.includes("application/json")) {
+            return response.json();
+          } else {
+            throw new Error("Unexpected response type: " + contentType);
+          }
+        })
+        .then((responseData) => {
+          console.log(responseData);
+          data.value = responseData;
+          resolve(responseData);
         })
         .then((responseData) => {
           console.log(responseData);
