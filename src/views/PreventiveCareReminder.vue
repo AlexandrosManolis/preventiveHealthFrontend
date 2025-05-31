@@ -90,16 +90,22 @@ const reminderType = ref('preventiveCareReminder');
 
       <!-- Appointment cards -->
       <div v-for="(appointment, index) in data.appointments" :key="`appt-${index}`" class="card" v-if="reminderType === 'appointmentReminder'">
-        <div class="card-header">
+        <div class="card-header"  v-if="appointment.appointmentStatus !== 'COMPLETED'">
           <span class="title">{{ appointment.specialty }}</span>
           <span class="badge" :class="getDaysUntil(appointment.date).status">
-            {{ getDaysUntil(appointment.date).days <= 0 ? 'Overdue' : `${getDaysUntil(appointment.date).days} days left` }}
+            {{ getDaysUntil(appointment.date).days <= 0 ? 'Overdue' : `${getDaysUntil(appointment.date).days} days left for your appointment` }}
+          </span>
+        </div>
+        <div class="card-header" v-if="appointment.appointmentStatus === 'COMPLETED' && appointment.recheckDate">
+          <span class="title">{{ appointment.specialty }}, {{appointment.appointmentStatus}}</span>
+          <span class="badge" :class="getDaysUntil(appointment.recheckDate).status">
+            {{ getDaysUntil(appointment.recheckDate).days <= 0 ? 'Overdue' : `${getDaysUntil(appointment.recheckDate).days} days left to make your next appointment` }}
           </span>
         </div>
 
         <div class="card-body">
           <div class="detail"><strong>Exam:</strong> {{ appointment.appointmentCause }}</div>
-          <div class="detail"><strong>Appointment:</strong> {{ appointment.date }}, {{ appointment.time }}</div>
+          <div class="detail"><strong>Appointment:</strong> {{ appointment.recheckDate ? appointment.recheckDate : appointment.date }}, {{ appointment.time }}</div>
         </div>
 
         <RouterLink :to="{name:'appointmentDetails', params: {id: appointment.patient.id, appointmentId: appointment.id}}" class="btn-secondary">
