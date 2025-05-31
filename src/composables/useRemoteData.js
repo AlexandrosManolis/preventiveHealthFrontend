@@ -78,6 +78,11 @@ export function useRemoteData(urlRef, authRef, methodRef = ref("GET"), bodyRef =
           data.value = responseData;
           resolve(responseData);
         })
+        .then((responseData) => {
+          console.log(responseData);
+          data.value = responseData;
+          resolve(responseData);
+        })
         .catch((err) => {
           console.error("Fetch error:", err);
           error.value = err;
