@@ -77,19 +77,12 @@ const onClick = async (appointmentId) => {
     const { performRequest } = useRemoteData(urlRef, authRef, methodRef);
     const response = await performRequest();
 
-    if (response.message) {
-      Swal.fire({
-        title: "Appointment accepted successfully",
-        icon: "success"
-      }).then(() => {
-        window.location.reload();
-      });
-    } else {
-      Swal.fire({
-        title: "Request failed",
-        icon: "error"
-      });
-    }
+    Swal.fire({
+      title: "Appointment accepted successfully",
+      icon: "success"
+    }).then(() => {
+      window.location.reload();
+    });
   } catch (error) {
     Swal.fire({
       title: "An error occurred",

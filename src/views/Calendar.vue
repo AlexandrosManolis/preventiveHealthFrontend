@@ -193,7 +193,7 @@ const onsubmit = async (event) => {
 
       const response = await performRequest();
       Swal.fire({
-        title: `Appointment sent successfully, ${response}`,
+        title: `Appointment sent successfully`,
         icon: "success"
       }).then(() => {
         router.push(`/user/${patientId}/appointments?status=uncompleted`);

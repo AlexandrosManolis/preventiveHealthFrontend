@@ -28,7 +28,7 @@ const goBack = (()=>{
 
 <template>
   <div class="container-fluid">
-    <div v-if="data">
+    <div v-if="data && data.length > 0">
       <h2 class="text-center">{{data[0].diagnosticFullName || data[0].doctorFullName}}</h2>
       <p class="text-center">{{data[0].diagnosticAddress || data[0].doctorAddress}}</p>
       <div v-for="data in data" :key="data.id" style="padding: 10px">
