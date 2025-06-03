@@ -59,7 +59,7 @@ const deleteUser = (userId) => {
     preConfirm: async () => {
       try {
         urlRef.value = `${backendEnvVar}/api/admin/remove/${userId}`;
-        const methodRef = ref("POST");
+        const methodRef = ref("DELETE");
 
         const { performRequest } = useRemoteData(urlRef, authRef, methodRef);
         const response = await performRequest();
