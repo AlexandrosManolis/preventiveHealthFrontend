@@ -43,7 +43,7 @@ const accept = (resultId) => {
     .then((result) => {
       if (result.isConfirmed) {
         return Swal.fire({
-          title: 'Appointment accepted successfully',
+          title: 'User accepted successfully',
           icon: 'success',
         })
       }

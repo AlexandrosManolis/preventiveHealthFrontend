@@ -75,9 +75,10 @@ const onClick = async (appointmentId) => {
     methodRef.value = "POST";
 
     const { performRequest } = useRemoteData(urlRef, authRef, methodRef);
-    const response = await performRequest();
 
-    Swal.fire({
+    await performRequest();
+
+    await Swal.fire({
       title: "Appointment accepted successfully",
       icon: "success"
     }).then(() => {

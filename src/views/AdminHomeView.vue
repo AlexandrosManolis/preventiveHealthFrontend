@@ -79,7 +79,7 @@ const deleteUser = (userId) => {
   }).then((result) => {
     if (result.isConfirmed) {
       return Swal.fire({
-        title: "Appointment cancelled successfully",
+        title: "User removed successfully",
         icon: "success"
       });
     }
