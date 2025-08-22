@@ -164,7 +164,7 @@ onMounted(async () => {
             </div>
           </RouterLink>
 
-          <RouterLink :to="{name : 'fileSharing', params: {id : applicationStore.userData.id}}" v-if="applicationStore.isAuthenticated && !userRole.includes('ROLE_ADMIN')" class="card btn fw-bolder btn-dark">
+          <RouterLink :to="{name : 'fileSharing', params: {id : applicationStore.userData.id}}" v-if="applicationStore.isAuthenticated && !userRole.includes('ROLE_ADMIN') && !pendingUserRequest.exists && !rejectedUserRequest.exists" class="card btn fw-bolder btn-dark">
             <div class="card-content">
               <h2>File Sharing</h2>
               <p>Find every exam you want in one page.</p>

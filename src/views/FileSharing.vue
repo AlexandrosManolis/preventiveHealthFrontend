@@ -1,5 +1,5 @@
 <script setup>
-import { onMounted, ref, computed } from 'vue'
+import { onMounted, ref, computed, nextTick } from 'vue'
 import { useRemoteData } from '@/composables/useRemoteData.js'
 import { useRoute, useRouter } from 'vue-router'
 import PdfDownloadView from '@/views/PdfDownloadView.vue'
@@ -238,7 +238,10 @@ const currentPdfFile = ref(null);
 
 const viewPdf = (appointmentId) => {
   currentPdfFile.value = appointmentId;
-  showPdfView.value = true;
+  showPdfView.value = false; // reset
+  nextTick(() => {
+    showPdfView.value = true;
+  });
 };
 
 const goBack = () => {

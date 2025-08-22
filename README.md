@@ -50,6 +50,10 @@ Compile and minify for production deployment:
 npm run build
 ```
 
+```bash
+npm run preview
+```
+
 The built files will be in the `dist` directory.
 
 ## 🧪 Testing

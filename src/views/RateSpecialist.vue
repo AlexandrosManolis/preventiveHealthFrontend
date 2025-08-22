@@ -57,7 +57,7 @@ const onSubmit = async (event)=>{
     }
 
     Swal.fire({
-      title: "Appointment accepted successfully",
+      title: "Rating submitted successfully",
       icon: "success"
     }).then(() => {
       window.location.reload();

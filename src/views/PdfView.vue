@@ -1,6 +1,6 @@
 <script setup>
 import PDF from 'pdf-vue3'
-import { onMounted, ref } from 'vue'
+import { onMounted, ref, onUnmounted } from 'vue'
 import { useRemoteData } from '@/composables/useRemoteData.js'
 import Swal from 'sweetalert2'
 import { useRoute } from 'vue-router'
@@ -91,7 +91,9 @@ const disableContextMenu = (event) => {
 };
 
 onMounted(() => {
-  previewFile();
+  if (props.appointment_id) {
+    previewFile();
+  }
 });
 </script>
 

@@ -8,7 +8,6 @@ import Swal from 'sweetalert2'
 import index from 'v-calendar'
 import PdfView from '@/views/PdfView.vue'
 import PdfDownloadView from '@/views/PdfDownloadView.vue'
-import { da } from 'date-fns/locale'
 
 const route = useRoute()
 const router = useRouter()
@@ -381,7 +380,7 @@ const showPdfView = ref(false);
       <Calendar :data="data" :specialty="data.specialty" calendar-type="changeAppointment" v-if="userRole.includes('ROLE_PATIENT') && !data.appointmentStatus === 'COMPLETED'"/>
     </div>
   </div>
-  <PdfView :appointment_id="data.id" v-if="showPdfView"/>
+  <PdfView :appointment_id="data.id" v-if="showPdfView" @close="showPdfView = false"/>
 </template>
 
 <style scoped>

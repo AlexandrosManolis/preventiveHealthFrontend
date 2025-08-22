@@ -2,8 +2,6 @@
 import { useRoute, useRouter } from 'vue-router'
 import { onMounted, ref } from 'vue'
 import { useRemoteData } from '@/composables/useRemoteData.js'
-import index from 'v-calendar'
-import { da } from 'date-fns/locale'
 
 const router = useRouter()
 const route = useRoute()

@@ -2,7 +2,7 @@
 import { ref, computed, onMounted, watch } from 'vue';
 import { useRemoteData } from '../composables/useRemoteData';
 import { RouterLink } from 'vue-router'
-import Swal from 'sweetalert2' // Adjust path as needed
+import Swal from 'sweetalert2'
 
 // API setup
 const backendEnvVar = import.meta.env.VITE_BACKEND;
